@@ -15,6 +15,8 @@
  * are unit-testable without a runtime.
  */
 
+import { randomInt } from 'node:crypto';
+
 export interface PendingLink {
   /** The record being claimed. */
   employeeId: string;
@@ -35,9 +37,20 @@ export type LinkFailure = 'no_request' | 'expired' | 'too_many_attempts' | 'mism
 
 export type LinkVerdict = { ok: true; employeeId: string } | { ok: false; reason: LinkFailure };
 
-/** Six digits, zero-padded — 000123 is a valid code and must not become "123". */
-export function generateLinkCode(random: () => number = Math.random): string {
-  return String(Math.floor(random() * 1_000_000)).padStart(6, '0');
+/**
+ * Six digits, zero-padded — 000123 is a valid code and must not become "123".
+ *
+ * The source is a CSPRNG, not `Math.random`. V8 implements `Math.random` as
+ * xorshift128+, whose internal state can be recovered from a modest number of
+ * observed outputs — and this code is the only thing standing between someone
+ * and a colleague's salary and end-of-service figures. Predicting the next code
+ * would defeat the whole possession check.
+ *
+ * The parameter exists so the tests can pin exact values; production never
+ * passes it.
+ */
+export function generateLinkCode(randomBelow: (max: number) => number = (max) => randomInt(max)): string {
+  return String(randomBelow(1_000_000)).padStart(6, '0');
 }
 
 /**

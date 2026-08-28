@@ -30,8 +30,8 @@ const pending = (over: Partial<PendingLink> = {}): PendingLink => ({
 });
 
 describe('generateLinkCode', () => {
-  it('is six digits', () => {
-    expect(generateLinkCode(() => 0.5)).toMatch(/^\d{6}$/);
+  it('is six digits using the real source, which also proves the CSPRNG loads', () => {
+    expect(generateLinkCode()).toMatch(/^\d{6}$/);
   });
 
   it('keeps leading zeros rather than shortening the code', () => {
@@ -39,7 +39,23 @@ describe('generateLinkCode', () => {
   });
 
   it('uses the whole six-digit range', () => {
-    expect(generateLinkCode(() => 0.9999999)).toBe('999999');
+    expect(generateLinkCode(() => 999_999)).toBe('999999');
+  });
+
+  it('asks its source for a value below one million', () => {
+    const seen: number[] = [];
+    generateLinkCode((max) => {
+      seen.push(max);
+      return 1;
+    });
+    expect(seen).toEqual([1_000_000]);
+  });
+
+  // Cannot assert randomness quality from outside, but a source that is
+  // constant — or missing — shows up immediately.
+  it('does not return the same code every time', () => {
+    const codes = new Set(Array.from({ length: 50 }, () => generateLinkCode()));
+    expect(codes.size).toBeGreaterThan(1);
   });
 });
 

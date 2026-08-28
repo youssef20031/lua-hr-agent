@@ -4,37 +4,37 @@ agent:
 skills:
   - name: leave-management
     skillId: 88566f53-1cd2-44b3-bc81-ff3e274095e9
-    version: 1.0.4
+    version: 1.0.6
   - name: hr-knowledge
     skillId: f6142ce1-8895-4c43-b377-f48c080a66a4
-    version: 1.0.4
+    version: 1.0.6
   - name: hr-calculations
     skillId: facad8a7-12a6-4573-8252-e7c268132817
-    version: 1.0.4
+    version: 1.0.6
   - name: hr-ops-dashboard
     skillId: 35e503b6-4e6a-44fe-b694-b03d054c9e59
-    version: 1.0.4
+    version: 1.0.6
   - name: account-linking
     skillId: ac083de0-a0c5-4e25-89dd-1aeb68f149fa
-    version: 1.0.1
+    version: 1.0.2
 webhooks: []
 jobs:
   - jobId: d92b8999-4dba-41fc-b6c8-7c3e7029ad7d
     name: iqama-expiry-sweep
-    version: 1.0.4
+    version: 1.0.6
   - jobId: b164a4aa-b47f-414c-8d42-fbaf556c8f5c
     name: leave-audit-sync
-    version: 1.0.4
+    version: 1.0.6
 preprocessors:
   - name: language-detect
     preprocessorId: preprocessor_016f1b53-7564-4360-b4a7-98248a804208
-    version: 1.0.4
+    version: 1.0.6
 postprocessors:
   - name: channel-shape
     postprocessorId: postprocessor_d66d416f-46e6-4ff0-91cd-903370acd322
-    version: 1.0.4
+    version: 1.0.6
 mcpServers: []
 backup:
-  activeVersion: 5
-  lastHash: 8e4f4300b09dc5b40e55d87bb23bb3adb9b2f8a5e392db49c3fefdb905cbc23a
-  lastPushedAt: '2026-08-28T22:10:24.875Z'
+  activeVersion: 6
+  lastHash: 748b33b082e2047ed6ad125d84ae1167b923216e4ac919a6941f388cac9e8b12
+  lastPushedAt: '2026-08-28T22:13:24.343Z'
