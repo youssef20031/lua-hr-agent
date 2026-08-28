@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.lua/
+.env
+.env.local
+*.local.json
+.local/
+secrets/
+*.pem
+service-account*.json
+.DS_Store
+Thumbs.db
+coverage/

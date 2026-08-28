@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rafiq — HR Desk | Wadi Industrial Group</title>
+    <meta
+      name="description"
+      content="Ask Rafiq about leave, HR procedures, end-of-service and Iqama renewal. Available here and on WhatsApp."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ------------------------------------------------------------------
+         Palette drawn from plant signage rather than corporate stock:
+         petrol-dark steel, limestone plate, brass safety marking, oxide red
+         reserved exclusively for genuine urgency (an expired permit).
+         ------------------------------------------------------------------ */
+      :root {
+        --ink: #16211f;
+        --ink-soft: #2c3a37;
+        --plate: #e6e2d9;
+        --plate-deep: #d5d0c4;
+        --steel: #556865;
+        --brass: #c9a227;
+        --brass-dim: #a5851f;
+        --oxide: #b4472e;
+        --paper: #faf9f6;
+        --rule: rgba(22, 33, 31, 0.16);
+
+        --display: 'IBM Plex Sans Condensed', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        --body: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+        --arabic: 'IBM Plex Sans Arabic', 'IBM Plex Sans', system-ui, sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+        --gutter: clamp(1.25rem, 4vw, 3.5rem);
+        --seam: 1px solid var(--rule);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--plate);
+        color: var(--ink);
+        font-family: var(--body);
+        font-size: 16px;
+        line-height: 1.55;
+        /* Faint mechanical grid: a plant drawing, not a decorative pattern. */
+        background-image:
+          linear-gradient(rgba(22, 33, 31, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 33, 31, 0.035) 1px, transparent 1px);
+        background-size: 44px 44px;
+      }
+
+      /* Arabic needs slightly more leading and a touch more size to match
+         the optical weight of the Latin at the same nominal size. */
+      :lang(ar),
+      [dir='rtl'] {
+        font-family: var(--arabic);
+        line-height: 1.75;
+      }
+
+      .wrap {
+        max-width: 74rem;
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--brass);
+        outline-offset: 3px;
+      }
+
+      .skip {
+        position: absolute;
+        inset-inline-start: -9999px;
+        top: 0;
+        background: var(--ink);
+        color: var(--paper);
+        padding: 0.75rem 1rem;
+        z-index: 50;
+      }
+      .skip:focus {
+        inset-inline-start: 0;
+      }
+
+      /* ---------------------------- masthead ---------------------------- */
+
+      .masthead {
+        background: var(--ink);
+        color: var(--paper);
+        border-bottom: 4px solid var(--brass);
+      }
+
+      .masthead__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-block: 0.9rem;
+        flex-wrap: wrap;
+      }
+
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-family: var(--display);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        font-size: 1.05rem;
+        text-transform: uppercase;
+      }
+
+      .mark__glyph {
+        width: 26px;
+        height: 26px;
+        flex: none;
+      }
+
+      .mark__sub {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        color: var(--brass);
+        text-transform: uppercase;
+      }
+
+      /* Language control. Not a flag, not a globe: a labelled two-position
+         switch, the way a bilingual control panel is actually marked. */
+      .lang {
+        display: inline-flex;
+        border: 1px solid rgba(250, 249, 246, 0.28);
+      }
+
+      .lang button {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        color: rgba(250, 249, 246, 0.62);
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        padding: 0.42rem 0.85rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: background-color 0.18s ease, color 0.18s ease;
+      }
+
+      .lang button + button {
+        border-inline-start: 1px solid rgba(250, 249, 246, 0.28);
+      }
+
+      .lang button[aria-pressed='true'] {
+        background: var(--brass);
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      .lang button:hover:not([aria-pressed='true']) {
+        color: var(--paper);
+        background: rgba(250, 249, 246, 0.08);
+      }
+
+      /* ------------------------------ plate ------------------------------ */
+      /* The signature element. A single riveted plate carrying BOTH languages
+         at once, because that is how every sign on a Saudi industrial site is
+         made. The toggle changes reading direction and interface chrome; it
+         never removes a language from the plate. */
+
+      .plate {
+        position: relative;
+        margin-block: clamp(2rem, 5vw, 3.5rem);
+        background: linear-gradient(160deg, var(--paper), var(--plate-deep));
+        border: 1px solid var(--rule);
+        box-shadow:
+          0 1px 0 rgba(250, 249, 246, 0.7) inset,
+          0 18px 40px -28px rgba(22, 33, 31, 0.5);
+      }
+
+      .plate::before,
+      .plate::after {
+        /* Rivets. Four, at the corners, like the real thing. */
+        content: '';
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--steel);
+        box-shadow:
+          0 0 0 1px rgba(22, 33, 31, 0.25),
+          calc(100% + 1.6rem) 0 0 0 var(--steel),
+          0 0 0 1px rgba(22, 33, 31, 0.25);
+        top: 0.85rem;
+        inset-inline-start: 0.85rem;
+      }
+
+      .plate::after {
+        top: auto;
+        bottom: 0.85rem;
+      }
+
+      .plate__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 62rem) {
+        .plate__grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        /* The seam: one hairline where the two languages meet. */
+        .plate__half + .plate__half {
+          border-inline-start: var(--seam);
+        }
+      }
+
+      .plate__half {
+        padding: clamp(1.75rem, 4vw, 3rem);
+      }
+
+      .plate__half + .plate__half {
+        border-top: var(--seam);
+      }
+
+      @media (min-width: 62rem) {
+        .plate__half + .plate__half {
+          border-top: 0;
+        }
+      }
+
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--steel);
+        margin: 0 0 1rem;
+      }
+
+      .plate h1 {
+        font-family: var(--display);
+        font-size: clamp(2.1rem, 5.2vw, 3.4rem);
+        font-weight: 700;
+        line-height: 1.02;
+        letter-spacing: -0.015em;
+        margin: 0 0 0.9rem;
+        text-wrap: balance;
+      }
+
+      .plate__half--ar {
+        direction: rtl;
+        text-align: right;
+      }
+
+      .plate__half--ar h1 {
+        font-family: var(--arabic);
+        font-size: clamp(1.9rem, 4.6vw, 2.9rem);
+        line-height: 1.3;
+        letter-spacing: 0;
+      }
+
+      .plate__half--ar .eyebrow {
+        font-family: var(--arabic);
+        letter-spacing: 0;
+      }
+
+      .plate p {
+        margin: 0;
+        max-width: 34ch;
+        color: var(--ink-soft);
+        font-size: 1.02rem;
+      }
+
+      /* The inactive language recedes but never disappears. */
+      .plate__half[data-active='false'] {
+        opacity: 0.55;
+        transition: opacity 0.35s ease;
+      }
+      .plate__half[data-active='true'] {
+        opacity: 1;
+        transition: opacity 0.35s ease;
+      }
+
+      /* ------------------------------ doors ------------------------------ */
+
+      .doors {
+        display: grid;
+        gap: 1px;
+        background: var(--rule);
+        border: 1px solid var(--rule);
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 48rem) {
+        .doors {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .door {
+        appearance: none;
+        border: 0;
+        text-align: start;
+        text-decoration: none;
+        background: var(--paper);
+        padding: clamp(1.4rem, 3vw, 2rem);
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+        position: relative;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+      }
+
+      .door:hover,
+      .door:focus-visible {
+        background: #fff;
+      }
+
+      .door::after {
+        content: '';
+        position: absolute;
+        inset-block-end: 0;
+        inset-inline-start: 0;
+        height: 3px;
+        width: 0;
+        background: var(--brass);
+        transition: width 0.28s ease;
+      }
+
+      .door:hover::after,
+      .door:focus-visible::after {
+        width: 100%;
+      }
+
+      .door__label {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--steel);
+      }
+
+      .door__title {
+        font-family: var(--display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+
+      [dir='rtl'] .door__title {
+        font-family: var(--arabic);
+      }
+
+      .door__note {
+        color: var(--ink-soft);
+        font-size: 0.94rem;
+      }
+
+      /* ------------------------------ asks ------------------------------- */
+
+      .asks {
+        margin-block: clamp(2.5rem, 6vw, 4rem);
+      }
+
+      .asks__head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 0.6rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .asks__head h2 {
+        font-family: var(--display);
+        font-size: 1.35rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin: 0;
+      }
+
+      [dir='rtl'] .asks__head h2 {
+        font-family: var(--arabic);
+        text-transform: none;
+        letter-spacing: 0;
+      }
+
+      .asks__grid {
+        display: grid;
+        gap: 0.85rem;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+      }
+
+      /* Each example is a real utterance the agent handles, in the language a
+         speaker of that language would actually type. Not translations of one
+         another — different people, different questions. */
+      .ask {
+        appearance: none;
+        border: 1px solid var(--rule);
+        background: transparent;
+        padding: 0.95rem 1.05rem;
+        text-align: start;
+        font: inherit;
+        color: var(--ink);
+        cursor: pointer;
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        transition: border-color 0.18s ease, background-color 0.18s ease;
+      }
+
+      .ask:hover,
+      .ask:focus-visible {
+        border-color: var(--ink);
+        background: rgba(250, 249, 246, 0.7);
+      }
+
+      .ask__tag {
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        color: var(--steel);
+        border: 1px solid var(--rule);
+        padding: 0.1rem 0.32rem;
+        flex: none;
+        margin-top: 0.15rem;
+      }
+
+      .ask--ar {
+        direction: rtl;
+        text-align: right;
+        font-family: var(--arabic);
+      }
+
+      /* ----------------------------- footer ------------------------------ */
+
+      .foot {
+        border-top: 1px solid var(--rule);
+        padding-block: 1.5rem 2.5rem;
+        font-size: 0.85rem;
+        color: var(--steel);
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .foot__note {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+      }
+
+      .foot strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* Page-load sequence: the plate settles, then the doors. One
+         orchestrated moment, nothing else moves on its own. */
+      @keyframes settle {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .plate,
+      .doors,
+      .asks {
+        animation: settle 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+      }
+      .doors {
+        animation-delay: 0.09s;
+      }
+      .asks {
+        animation-delay: 0.16s;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-delay: 0ms !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+    <header class="masthead">
+      <div class="wrap masthead__inner">
+        <div class="mark">
+          <svg class="mark__glyph" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M2 20h20M5 20V9l7-5 7 5v11M9 20v-6h6v6"
+              fill="none"
+              stroke="#C9A227"
+              stroke-width="1.6"
+              stroke-linecap="square"
+            />
+          </svg>
+          <span>
+            Wadi Industrial Group
+            <span class="mark__sub" style="display: block">HR Desk / مكتب الموارد البشرية</span>
+          </span>
+        </div>
+
+        <div class="lang" role="group" aria-label="Interface language / لغة الواجهة">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="ar" aria-pressed="false">ع</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap">
+        <!-- The plate. Both languages, always. -->
+        <section class="plate" aria-label="Rafiq, the HR assistant">
+          <div class="plate__grid">
+            <div class="plate__half" lang="en" data-active="true">
+              <p class="eyebrow">HR Assistant · Available 24/7</p>
+              <h1>Ask Rafiq.</h1>
+              <p>
+                Leave requests, HR procedures, end-of-service, Iqama renewal. Answered from your own
+                record and the company handbook — not guesswork.
+              </p>
+            </div>
+            <div class="plate__half plate__half--ar" lang="ar" data-active="false">
+              <p class="eyebrow">مساعد الموارد البشرية · متاح على مدار الساعة</p>
+              <h1>اسأل رفيق.</h1>
+              <p>
+                طلبات الإجازات وإجراءات الموارد البشرية ومكافأة نهاية الخدمة وتجديد الإقامة. إجابات
+                من سجلك الشخصي ومن دليل الشركة، لا تخمين.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Two doors: office staff open the widget, field staff use WhatsApp. -->
+        <section class="doors" aria-label="How to reach Rafiq">
+          <button type="button" class="door" id="open-chat">
+            <span class="door__label" data-i18n="door1label">Office staff</span>
+            <span class="door__title" data-i18n="door1title">Open the chat</span>
+            <span class="door__note" data-i18n="door1note"
+              >Opens here in your browser. Signed in as you, so it can see your leave balance.</span
+            >
+          </button>
+
+          <a class="door" id="open-whatsapp" href="#" rel="noopener">
+            <span class="door__label" data-i18n="door2label">Field staff</span>
+            <span class="door__title" data-i18n="door2title">Message on WhatsApp</span>
+            <span class="door__note" data-i18n="door2note"
+              >Same assistant, on your phone. Works in Arabic or English.</span
+            >
+          </a>
+        </section>
+
+        <section class="asks">
+          <div class="asks__head">
+            <h2 data-i18n="askshead">What people ask</h2>
+            <span class="foot__note" data-i18n="askshint">Select one to start</span>
+          </div>
+          <div class="asks__grid" id="asks"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot wrap">
+      <span data-i18n="footleft">
+        <strong>Wadi Industrial Group</strong> — Saudi Arabia, UAE, Egypt, Jordan
+      </span>
+      <span class="foot__note" id="build-note">Rafiq · agent build —</span>
+    </footer>
+
+    <!-- ------------------------------------------------------------------
+         Configuration. Set AGENT_ID after `lua push`; it is printed by the
+         CLI and shown in lua.skill.yaml.
+         ------------------------------------------------------------------ -->
+    <script>
+      window.RAFIQ_CONFIG = {
+        // Replace with your agent id from lua.skill.yaml.
+        agentId: 'YOUR_AGENT_ID',
+        // Lua's shared testing number. Swap for your own WABA number in production.
+        whatsappNumber: '13023778932',
+      };
+    </script>
+
+    <!--
+      No Subresource Integrity hash on this tag, deliberately. Lua publishes the
+      widget from an unversioned URL and updates it in place, so a pinned hash
+      would break the chat the next time they ship. The trade-off is a
+      third-party script dependency on Lua's own CDN.
+
+      To remove that exposure in production: vendor a known-good copy of
+      lua-pop.umd.js into this directory, serve it from the same origin as the
+      portal, and add an integrity hash to the local copy. See
+      docs/RUNBOOK-channels.md.
+    -->
+    <script src="https://lua-ai-global.github.io/lua-pop/lua-pop.umd.js" defer></script>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var cfg = window.RAFIQ_CONFIG || {};
+
+        /* Example utterances. Deliberately NOT translations of each other:
+           these are two different people asking two different things, which is
+           what the workforce actually looks like. */
+        var ASKS = [
+          { lang: 'en', tag: 'LEAVE', text: 'How many annual leave days do I have left?' },
+          { lang: 'ar', tag: 'إجازة', text: 'أريد إجازة سنوية من ١٠ إلى ١٥ مارس' },
+          { lang: 'en', tag: 'EOSB', text: 'What would my end-of-service be if I resign?' },
+          { lang: 'ar', tag: 'الإقامة', text: 'متى تنتهي إقامتي؟' },
+          { lang: 'en', tag: 'SOP', text: 'How do I request a salary certificate?' },
+          { lang: 'ar', tag: 'إجراء', text: 'ما هي إجراءات تأشيرة الخروج والعودة؟' },
+        ];
+
+        var STRINGS = {
+          en: {
+            skip: 'Skip to content',
+            door1label: 'Office staff',
+            door1title: 'Open the chat',
+            door1note:
+              'Opens here in your browser. Signed in as you, so it can see your leave balance.',
+            door2label: 'Field staff',
+            door2title: 'Message on WhatsApp',
+            door2note: 'Same assistant, on your phone. Works in Arabic or English.',
+            askshead: 'What people ask',
+            askshint: 'Select one to start',
+            footleft: '<strong>Wadi Industrial Group</strong> — Saudi Arabia, UAE, Egypt, Jordan',
+          },
+          ar: {
+            skip: 'تخطَّ إلى المحتوى',
+            door1label: 'موظفو المكاتب',
+            door1title: 'افتح المحادثة',
+            door1note: 'تفتح هنا في المتصفح، وأنت مسجَّل الدخول، فيمكنها الاطلاع على رصيد إجازاتك.',
+            door2label: 'العاملون في المواقع',
+            door2title: 'راسلنا على واتساب',
+            door2note: 'المساعد نفسه على هاتفك، ويعمل بالعربية والإنجليزية.',
+            askshead: 'أسئلة يطرحها الزملاء',
+            askshint: 'اختر سؤالاً للبدء',
+            footleft:
+              '<strong>مجموعة وادي الصناعية</strong> — السعودية والإمارات ومصر والأردن',
+          },
+        };
+
+        var root = document.documentElement;
+        var current = 'en';
+
+        function renderAsks() {
+          var host = document.getElementById('asks');
+          host.innerHTML = '';
+          ASKS.forEach(function (ask) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ask' + (ask.lang === 'ar' ? ' ask--ar' : '');
+            btn.setAttribute('lang', ask.lang);
+
+            var tag = document.createElement('span');
+            tag.className = 'ask__tag';
+            tag.textContent = ask.tag;
+
+            var text = document.createElement('span');
+            text.textContent = ask.text;
+
+            btn.appendChild(tag);
+            btn.appendChild(text);
+            btn.addEventListener('click', function () {
+              openChat(ask.text);
+            });
+            host.appendChild(btn);
+          });
+        }
+
+        function setLanguage(lang) {
+          current = lang;
+          root.setAttribute('lang', lang);
+          root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+
+          var strings = STRINGS[lang];
+          document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (strings[key]) el.innerHTML = strings[key];
+          });
+
+          // The plate keeps both languages; only the emphasis moves.
+          document.querySelectorAll('.plate__half').forEach(function (half) {
+            half.setAttribute('data-active', half.getAttribute('lang') === lang ? 'true' : 'false');
+          });
+
+          document.querySelectorAll('.lang button').forEach(function (btn) {
+            btn.setAttribute(
+              'aria-pressed',
+              btn.getAttribute('data-lang') === lang ? 'true' : 'false',
+            );
+          });
+
+          try {
+            localStorage.setItem('rafiq.lang', lang);
+          } catch (e) {
+            /* private browsing: the choice simply will not persist */
+          }
+        }
+
+        function whatsappHref(prefill) {
+          var text = prefill || 'link-me-to:' + cfg.agentId;
+          return 'https://wa.me/' + cfg.whatsappNumber + '?text=' + encodeURIComponent(text);
+        }
+
+        function openChat(prefill) {
+          if (window.LuaPop && typeof window.LuaPop.open === 'function') {
+            window.LuaPop.open(prefill ? { message: prefill } : undefined);
+            return;
+          }
+          // Widget unavailable (blocked, offline, or agent id not yet set):
+          // say so plainly and offer the route that does work.
+          var note = document.getElementById('build-note');
+          note.textContent =
+            current === 'ar'
+              ? 'تعذر فتح المحادثة. استخدم واتساب أدناه.'
+              : 'Chat could not open. Use WhatsApp instead.';
+          note.style.color = 'var(--oxide)';
+        }
+
+        function init() {
+          renderAsks();
+
+          var stored = null;
+          try {
+            stored = localStorage.getItem('rafiq.lang');
+          } catch (e) {
+            /* ignore */
+          }
+          // Fall back to the browser's own preference before defaulting to English.
+          var initial =
+            stored || ((navigator.language || '').slice(0, 2) === 'ar' ? 'ar' : 'en');
+          setLanguage(initial);
+
+          document.querySelectorAll('.lang button').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              setLanguage(btn.getAttribute('data-lang'));
+            });
+          });
+
+          document.getElementById('open-chat').addEventListener('click', function () {
+            openChat();
+          });
+          document.getElementById('open-whatsapp').setAttribute('href', whatsappHref());
+
+          document.getElementById('build-note').textContent =
+            'Rafiq · agent ' + (cfg.agentId === 'YOUR_AGENT_ID' ? 'not configured' : cfg.agentId);
+
+          if (window.LuaPop && typeof window.LuaPop.init === 'function') {
+            window.LuaPop.init({
+              agentId: cfg.agentId,
+              position: 'bottom-right',
+              chatTitle: 'Rafiq — HR Desk',
+              buttonColor: '#16211F',
+              welcomeMessage:
+                'Hello. Ask me about leave, HR procedures, end-of-service or your Iqama. تفضل بالسؤال بالعربية أيضاً.',
+            });
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+        // The widget script is deferred, so re-run init once it lands.
+        window.addEventListener('load', function () {
+          if (window.LuaPop && typeof window.LuaPop.init === 'function' && !window.__rafiqPopReady) {
+            window.__rafiqPopReady = true;
+            window.LuaPop.init({
+              agentId: cfg.agentId,
+              position: 'bottom-right',
+              chatTitle: 'Rafiq — HR Desk',
+              buttonColor: '#16211F',
+            });
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
