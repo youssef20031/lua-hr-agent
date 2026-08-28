@@ -17,12 +17,16 @@ import type { LuaTool } from 'lua-cli';
 import { Channels, User } from 'lua-cli';
 
 import {
+  allowLinkRequest,
   generateLinkCode,
+  hashLinkCode,
   maskDestination,
   verifyLinkCode,
   LINK_CODE_TTL_MINUTES,
+  LINK_REQUEST_WINDOW_MINUTES,
   MAX_LINK_ATTEMPTS,
   type PendingLink,
+  type RequestBudget,
 } from '../../domain/accountLink.js';
 import { getHris } from '../../services/bamboohr/index.js';
 import { currentEmployee, currentLanguage } from './calculationTools.js';
@@ -85,6 +89,28 @@ export class RequestAccountLinkTool implements LuaTool {
       ),
     };
 
+    const storedWindow = user.linkWindowStartedAt as string | undefined;
+    const budget: RequestBudget | null = storedWindow
+      ? { count: Number(user.linkRequestCount ?? 0), windowStartedAt: storedWindow }
+      : null;
+    const gate = allowLinkRequest(budget, new Date().toISOString());
+    if (!gate.allowed) {
+      return {
+        ok: false,
+        rateLimited: true,
+        message: say(
+          language,
+          `Too many code requests. Wait up to ${LINK_REQUEST_WINDOW_MINUTES} minutes and try again, or contact HR to link your account.`,
+          `عدد كبير من طلبات الرمز. انتظر حتى ${LINK_REQUEST_WINDOW_MINUTES} دقيقة ثم أعد المحاولة، أو تواصل مع الموارد البشرية لربط حسابك.`,
+        ),
+      };
+    }
+    // Spent even when the id does not exist, so this cannot become a free probe.
+    await user.update({
+      linkRequestCount: gate.next.count,
+      linkWindowStartedAt: gate.next.windowStartedAt,
+    });
+
     const employee = await getHris().getEmployee(input.employeeId.trim());
     if (!employee) return acknowledgement;
 
@@ -97,7 +123,7 @@ export class RequestAccountLinkTool implements LuaTool {
     const code = generateLinkCode();
     await user.update({
       pendingLinkEmployeeId: employee.id,
-      pendingLinkCode: code,
+      pendingLinkCodeHash: hashLinkCode(code),
       pendingLinkDestination: destination,
       pendingLinkExpiresAt: new Date(Date.now() + LINK_CODE_TTL_MINUTES * 60_000).toISOString(),
       pendingLinkAttempts: 0,
@@ -149,7 +175,7 @@ export class ConfirmAccountLinkTool implements LuaTool {
     const pending: PendingLink | null = claimed
       ? {
           employeeId: claimed,
-          code: String(user.pendingLinkCode ?? ''),
+          codeHash: String(user.pendingLinkCodeHash ?? ''),
           expiresAt: String(user.pendingLinkExpiresAt ?? ''),
           attempts: Number(user.pendingLinkAttempts ?? 0),
         }
@@ -194,7 +220,7 @@ export class ConfirmAccountLinkTool implements LuaTool {
     await user.update({
       employeeId: verdict.employeeId,
       pendingLinkEmployeeId: '',
-      pendingLinkCode: '',
+      pendingLinkCodeHash: '',
       pendingLinkDestination: '',
       pendingLinkExpiresAt: '',
       pendingLinkAttempts: 0,

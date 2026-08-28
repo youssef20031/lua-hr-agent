@@ -12,9 +12,14 @@ import {
   generateLinkCode,
   verifyLinkCode,
   maskDestination,
+  hashLinkCode,
+  allowLinkRequest,
   LINK_CODE_TTL_MINUTES,
   MAX_LINK_ATTEMPTS,
+  MAX_LINK_REQUESTS,
+  LINK_REQUEST_WINDOW_MINUTES,
   type PendingLink,
+  type RequestBudget,
 } from '../src/domain/accountLink.js';
 
 const NOW = '2026-08-29T10:00:00.000Z';
@@ -23,7 +28,7 @@ const minutesFrom = (iso: string, m: number): string =>
 
 const pending = (over: Partial<PendingLink> = {}): PendingLink => ({
   employeeId: 'E-1001',
-  code: '123456',
+  codeHash: hashLinkCode('123456'),
   expiresAt: minutesFrom(NOW, LINK_CODE_TTL_MINUTES),
   attempts: 0,
   ...over,
@@ -107,5 +112,53 @@ describe('maskDestination', () => {
     const masked = maskDestination('ahmad.alotaibi@example.com');
     expect(masked).toContain('@example.com');
     expect(masked).not.toContain('ahmad.alotaibi');
+  });
+});
+
+
+describe('hashLinkCode', () => {
+  it('never stores the code itself', () => {
+    expect(hashLinkCode('123456')).not.toContain('123456');
+  });
+
+  it('is stable for the same code and different for another', () => {
+    expect(hashLinkCode('123456')).toBe(hashLinkCode('123456'));
+    expect(hashLinkCode('123456')).not.toBe(hashLinkCode('123457'));
+  });
+});
+
+describe('allowLinkRequest', () => {
+  const NOW2 = '2026-08-29T10:00:00.000Z';
+
+  it('allows a first request and opens a window', () => {
+    const r = allowLinkRequest(null, NOW2);
+    expect(r.allowed).toBe(true);
+    expect(r.next).toEqual({ count: 1, windowStartedAt: NOW2 });
+  });
+
+  it('allows up to the cap within one window', () => {
+    let budget: RequestBudget | null = null;
+    for (let i = 0; i < MAX_LINK_REQUESTS; i += 1) {
+      const r = allowLinkRequest(budget, NOW2);
+      expect(r.allowed, `request ${i + 1}`).toBe(true);
+      budget = r.next;
+    }
+    expect(allowLinkRequest(budget, NOW2).allowed).toBe(false);
+  });
+
+  // The whole point: without this, re-requesting resets the attempt budget and
+  // the three-guess limit means nothing.
+  it('refuses to keep issuing codes once the cap is spent', () => {
+    const spent: RequestBudget = { count: MAX_LINK_REQUESTS, windowStartedAt: NOW2 };
+    expect(allowLinkRequest(spent, NOW2).allowed).toBe(false);
+    expect(allowLinkRequest(spent, NOW2).next.count).toBe(MAX_LINK_REQUESTS);
+  });
+
+  it('starts a fresh window once the old one has passed', () => {
+    const spent: RequestBudget = { count: MAX_LINK_REQUESTS, windowStartedAt: NOW2 };
+    const later = minutesFrom(NOW2, LINK_REQUEST_WINDOW_MINUTES + 1);
+    const r = allowLinkRequest(spent, later);
+    expect(r.allowed).toBe(true);
+    expect(r.next).toEqual({ count: 1, windowStartedAt: later });
   });
 });
