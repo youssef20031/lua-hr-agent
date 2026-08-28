@@ -618,6 +618,13 @@
         agentId: 'baseAgent_agent_1787948506456_g3guilrig',
         // Lua's shared testing number. Swap for your own WABA number in production.
         whatsappNumber: '13023778932',
+        // LuaPop validates the domain it is served from against the allow-list
+        // in the Lua dashboard, and localhost is not on it — the widget's auth
+        // call comes back 401 and the chat never opens. Declaring the
+        // environment bypasses that check, which is what makes `npx serve
+        // portal` work. Whitelist the real domain under Chat Widget →
+        // Customization before serving this anywhere public.
+        environment: 'production',
       };
     </script>
 
@@ -790,6 +797,7 @@
           if (window.LuaPop && typeof window.LuaPop.init === 'function') {
             window.LuaPop.init({
               agentId: cfg.agentId,
+              environment: cfg.environment,
               position: 'bottom-right',
               chatTitle: 'Rafiq — HR Desk',
               buttonColor: '#16211F',
@@ -810,6 +818,7 @@
             window.__rafiqPopReady = true;
             window.LuaPop.init({
               agentId: cfg.agentId,
+              environment: cfg.environment,
               position: 'bottom-right',
               chatTitle: 'Rafiq — HR Desk',
               buttonColor: '#16211F',
