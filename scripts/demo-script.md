@@ -5,12 +5,19 @@ Rehearse this. The cap is hard, and the interesting part is at the end.
 ## Before recording
 
 ```bash
-rm -f .local/ops-sheet.json     # clean slate
 npm run check                   # green
 npm run rules:status            # have this on screen for the provenance beat
 ```
 
-Open: the portal, a WhatsApp chat linked to the agent, and the Google Sheet.
+Clear the HR Ops sheet by hand: delete any rows under **SOP Gaps** and **Leave Audit**, and the
+empty default `Sheet1` tab. The sheet is live now, so the gap row has to land on camera rather than
+sit there from a rehearsal.
+
+Open: the portal at <https://youssef20031.github.io/lua-hr-agent/>, the agent console at
+admin.heylua.ai, a WhatsApp thread linked to the agent, and the Google Sheet.
+
+Check the agent is named **Rafiq** and not `test` in the dashboard — its name appears against every
+reply in the console transcript.
 
 ---
 
@@ -34,26 +41,39 @@ Show the diagram in the README, then make three points and move on:
 3. **Integrations are interfaces.** One env var swaps BambooHR for a fixture. That is why this
    repository runs end to end on a fresh clone with no accounts.
 
-## 2:45–5:00 — Leave, in English, on the web
+## 2:45–4:15 — The portal, and what a web visitor can and cannot do
 
-In the portal: *"How many annual leave days do I have left?"*
+Open the portal. Both languages sit on screen at once and the toggle changes reading direction
+rather than hiding one, which is how bilingual signage on a Saudi industrial site actually works.
+Two doors: office staff into the chat, field staff into WhatsApp.
 
-Point out it resolved the employee, read the balance from the HRIS, and volunteered the step-up date.
+Ask the widget a **rule** question: *"How many annual leave days does Saudi law give after five
+years?"* It answers 30, with Article 109, and renders the structure properly — this is the rich
+channel.
 
-Then: *"I want to take annual leave from 10 to 15 March."*
+Then ask it a **personal** question: *"How many days do I have left?"* It refuses: it cannot match
+you to an employee record. Say why, because it is a design point rather than a bug. LuaPop passes no
+user identity, so a web visitor is anonymous. Then type *"I am Ahmad"* — it still refuses. Identity
+comes from the channel, never from a claim inside the conversation, or anyone could read anyone
+else's balance by asserting a name.
 
-- It reads the dates back and asks to confirm — six days, inclusive.
-- It files the request and names the approver.
-- Switch to the manager: *"approve LR-6000"* — and the employee is notified.
+That is what sends personal requests to WhatsApp, where the sender's number identifies them. The
+split matches the two audiences in the brief rather than working around them.
 
-Show the row landing in the **Leave Audit** tab.
-
-## 5:00–6:45 — Arabic, on WhatsApp, and a real gap
+## 4:15–6:45 — Leave and Arabic on WhatsApp, and a real gap
 
 On WhatsApp: **كم يوم إجازة متبقي لي؟**
 
-It answers in Arabic. Point out the reply is short plain text with no tables — the postprocessor
-reshaped it for the channel.
+Now it knows who you are, from the sender's number. It answers in Arabic with the real balance —
+short plain text, no tables, because the postprocessor reshaped it for the channel. Same question,
+same agent, different channel, different answer: that contrast is the multi-channel requirement.
+
+Then file one: *"I want to take annual leave from 10 to 15 March."* It reads the dates back and asks
+to confirm — six days, inclusive — then files it and names the approver. Show the row landing in the
+**Leave Audit** tab.
+
+If WhatsApp is unavailable, run this beat in the agent console instead and say so; the console
+resolves you by the email on your Lua account, so identity still works there.
 
 Then ask for something that genuinely is not documented:
 *"What is the process for transferring my wife's visa to my sponsorship?"*
