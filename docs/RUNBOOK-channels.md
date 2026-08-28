@@ -46,9 +46,35 @@ for the four alert thresholds and send those instead.
    window.RAFIQ_CONFIG = { agentId: 'YOUR_AGENT_ID', whatsappNumber: '13023778932' };
    ```
 
-2. Whitelist the domain in the Lua dashboard under **Chat Widget → Customization**. For localhost,
-   set `environment: "production"` in the `LuaPop.init` call to bypass domain validation.
-3. Serve it: `npx serve portal`, or push it to GitHub Pages for a shareable link.
+2. Serve it. `.github/workflows/pages.yml` publishes `portal/` to GitHub Pages on every push that
+   touches it, which is the easiest way to get a real HTTPS origin; `npx serve portal` works locally.
+
+### The embedded widget does not currently connect — checked 29 August 2026
+
+The LuaPop bubble needs a webchat configuration registered against the agent, and there is no way to
+create one. **Connect a channel** offers Facebook, WhatsApp, Instagram, Slack, Email, MessageBird,
+Front, Phone, Meetings, Microsoft Teams and iMessage — searching it for `web`, `site` and `widget`
+returns nothing. There is no "Chat Widget" section anywhere in the dashboard; an earlier version of
+this runbook said to whitelist the domain under **Chat Widget → Customization**, and that section no
+longer exists.
+
+What `GET /webchat/config` returns tells you where the boundary is:
+
+| `website=` | Response | Meaning |
+| --- | --- | --- |
+| `localhost` | `400` | Rejected as an invalid website value, whatever else is configured |
+| `youssef20031.github.io` | `404` | Valid domain, but no webchat config exists for this agent |
+
+Either way `POST /chat/welcome/{agentId}` then returns `401`, because there is nothing to authorise
+against. The `environment: "production"` flag that this runbook used to recommend as a localhost
+bypass changes neither response — the request still carries `website=localhost` and still fails. The
+page keeps that flag scoped to localhost only, so a real host enforces whatever allow-list exists
+rather than silently skipping it.
+
+The portal handles this: the widget failure is caught and the page falls back to
+"Chat could not open. Use WhatsApp instead.", which is a working channel rather than a dead end.
+Office staff on the portal reach the same agent through the WhatsApp door until the widget can be
+configured.
 
 The page keeps both languages on screen at once and the toggle changes reading direction rather than
 hiding a language, which is how bilingual signage on a Saudi industrial site actually works. Language

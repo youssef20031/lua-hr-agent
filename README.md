@@ -181,6 +181,13 @@ Stated plainly, because they are design decisions rather than oversights.
   rather than reading back every row, so a re-run inside the same window can duplicate an audit
   entry. A duplicate audit row is a smaller problem than a missing one, which is why it errs that
   way, but it should read the tab directly.
+- **The embedded web-chat widget cannot be connected.** The LuaPop bubble needs a webchat
+  configuration registered against the agent, and the Lua dashboard offers no way to create one —
+  **Connect a channel** lists eleven messaging integrations and none of them is web. `GET
+  /webchat/config` returns `400` for `localhost` and `404` for a real HTTPS origin, and the welcome
+  call then `401`s. The portal degrades to its WhatsApp door rather than failing silently, and
+  `docs/RUNBOOK-channels.md` records exactly what was tried. This is a platform limitation, not a
+  gap in the page: the portal itself is static, bilingual and needs no build step.
 - **`listEmployeesWithPermits` re-reads every employee** because the BambooHR directory does not
   carry custom fields. Fine at fixture scale and for a demo; a real 50,000-employee tenant needs a
   custom report instead.
