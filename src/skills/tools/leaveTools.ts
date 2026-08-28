@@ -393,7 +393,7 @@ export class DecideLeaveRequestTool implements LuaTool {
       requestId: updated.id,
       employeeId: updated.employeeId,
       employeeName: updated.employeeName,
-      country: subject?.country ?? 'SA',
+      country: subject?.country ?? null,
       leaveType: updated.leaveType,
       startDate: updated.startDate,
       endDate: updated.endDate,

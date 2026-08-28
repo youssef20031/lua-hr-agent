@@ -252,7 +252,7 @@ export class LogSopGapTool implements LuaTool {
       reference,
       employeeId: employee?.id ?? 'unknown',
       employeeName: employee?.displayName ?? '',
-      country: employee?.country ?? 'SA',
+      country: employee?.country ?? null,
       channel,
       language: questionLanguage,
       question: input.question,
@@ -357,7 +357,7 @@ async function notifyHr(record: {
   reference: string;
   question: string;
   employeeName: string;
-  country: string;
+  country: string | null;
   channel: string;
 }): Promise<boolean> {
   try {
@@ -366,7 +366,7 @@ async function notifyHr(record: {
 
     const text =
       `Knowledge-base gap ${record.reference}\n` +
-      `From: ${record.employeeName || 'unidentified employee'} (${record.country}, ${record.channel})\n` +
+      `From: ${record.employeeName || 'unidentified employee'} (${record.country ?? 'country unknown'}, ${record.channel})\n` +
       `Question: ${record.question}\n` +
       `No SOP or policy covered this. Consider documenting it.`;
 

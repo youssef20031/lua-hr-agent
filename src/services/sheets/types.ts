@@ -67,7 +67,7 @@ export interface SopGapRow {
   /** Human-quotable reference handed back to the employee, e.g. GAP-2026-0042. */
   reference: string;
   employeeId: string;
-  country: CountryCode;
+  country: CountryCode | null;
   channel: string;
   language: Language;
   /** The question the knowledge base could not answer. */
@@ -83,7 +83,7 @@ export interface LeaveAuditRow {
   requestId: string;
   employeeId: string;
   employeeName: string;
-  country: CountryCode;
+  country: CountryCode | null;
   leaveType: string;
   startDate: string;
   endDate: string;
@@ -97,7 +97,7 @@ export interface IqamaWatchRow {
   refreshedAt: string;
   employeeId: string;
   employeeName: string;
-  country: CountryCode;
+  country: CountryCode | null;
   document: string;
   expiryDate: string;
   daysRemaining: number;
@@ -178,7 +178,7 @@ export function sopGapToValues(r: SopGapRow): (string | number)[] {
     r.loggedAt,
     r.reference,
     r.employeeId,
-    r.country,
+    r.country ?? '',
     r.channel,
     r.language,
     r.question,
@@ -194,7 +194,7 @@ export function leaveAuditToValues(r: LeaveAuditRow): (string | number)[] {
     r.requestId,
     r.employeeId,
     r.employeeName,
-    r.country,
+    r.country ?? '',
     r.leaveType,
     r.startDate,
     r.endDate,
@@ -210,7 +210,7 @@ export function iqamaWatchToValues(r: IqamaWatchRow): (string | number)[] {
     r.refreshedAt,
     r.employeeId,
     r.employeeName,
-    r.country,
+    r.country ?? '',
     r.document,
     r.expiryDate,
     r.daysRemaining,

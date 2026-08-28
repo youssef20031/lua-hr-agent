@@ -84,7 +84,7 @@ export const leaveAuditSyncJob = new LuaJob({
           requestId: request.id,
           employeeId: request.employeeId,
           employeeName: request.employeeName || employee?.displayName || '',
-          country: employee?.country ?? 'SA',
+          country: employee?.country ?? null,
           leaveType: request.leaveType,
           startDate: request.startDate,
           endDate: request.endDate,

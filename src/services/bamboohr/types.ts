@@ -19,7 +19,12 @@ export interface Employee {
   mobilePhone: string;
   /** ISO date. Drives every tenure-based entitlement. */
   hireDate: string;
-  country: CountryCode;
+  /**
+   * `null` when the HRIS record does not place the employee in one of the four
+   * covered jurisdictions. Callers must handle it rather than assume a country:
+   * every entitlement, gratuity figure and currency depends on this.
+   */
+  country: CountryCode | null;
   department: string;
   division: string;
   location: string;

@@ -55,6 +55,7 @@ const EMPLOYEE_FIELDS = [
   'country',
   'employmentHistoryStatus',
   'payRate',
+  'payPer',
 ] as const;
 
 export interface HttpHrisOptions {
@@ -452,6 +453,7 @@ export class HttpHrisClient implements HrisClient {
     const last = s('lastName');
     const permitExpiry = s(this.permitExpiryField);
     const country = normaliseCountry(s('country'), s('location'));
+    const pay = parsePay(s('payRate'), s('payPer'));
 
     const employee: Employee = {
       id: s('id'),
@@ -472,8 +474,8 @@ export class HttpHrisClient implements HrisClient {
       employmentStatus: s('employmentHistoryStatus').toLowerCase().includes('terminated')
         ? 'terminated'
         : 'active',
-      monthlyWage: Number(s('payRate').replace(/[^\d.]/g, '')) || 0,
-      currency: currencyFor(country),
+      monthlyWage: pay.monthlyWage,
+      currency: pay.currency || currencyFor(country),
       isFieldWorker: /site|field|plant|warehouse|technician/i.test(s('jobTitle')),
       isHrStaff: /human resources|people/i.test(s('department')),
     };
@@ -537,15 +539,41 @@ function mapStatusIn(raw: string): LeaveRequestStatus {
   return 'pending';
 }
 
-function normaliseCountry(country: string, location: string): CountryCode {
+/**
+ * Resolves one of the four covered jurisdictions from the record, or `null`
+ * when it is none of them.
+ *
+ * This used to fall through to 'SA'. That is the wrong kind of guess: a tenant
+ * holding staff outside these four countries — which includes every BambooHR
+ * demo tenant — would have had all of them silently treated as Saudi, and been
+ * quoted Saudi entitlements and a SAR gratuity. Saying "I cannot tell" is the
+ * only honest answer, and the tools surface it.
+ */
+function normaliseCountry(country: string, location: string): CountryCode | null {
   const haystack = `${country} ${location}`.toLowerCase();
   if (/saudi|ksa|riyadh|jubail|jeddah|dammam|yanbu/.test(haystack)) return 'SA';
   if (/emirat|uae|dubai|abu dhabi|sharjah/.test(haystack)) return 'AE';
   if (/egypt|cairo|alexandria/.test(haystack)) return 'EG';
   if (/jordan|amman|aqaba/.test(haystack)) return 'JO';
-  return 'SA';
+  return null;
 }
 
-function currencyFor(country: CountryCode): string {
-  return { SA: 'SAR', AE: 'AED', EG: 'EGP', JO: 'JOD' }[country];
+function currencyFor(country: CountryCode | null): string {
+  return country ? { SA: 'SAR', AE: 'AED', EG: 'EGP', JO: 'JOD' }[country] : '';
+}
+
+/**
+ * BambooHR returns `payRate` as an amount and a currency — "60000.00 GBP" — on
+ * whatever basis `payPer` states, which is commonly "Year". Reading that
+ * straight into a monthly wage overstates it twelvefold and carries the error
+ * into every gratuity figure, so the basis has to be honoured and the currency
+ * taken from the record rather than assumed from the country.
+ */
+export function parsePay(
+  payRate: string,
+  payPer: string,
+): { monthlyWage: number; currency: string } {
+  const amount = Number(payRate.replace(/[^\d.]/g, '')) || 0;
+  const currency = (payRate.match(/[A-Za-z]{3}/)?.[0] ?? '').toUpperCase();
+  return { monthlyWage: /^year/i.test(payPer) ? amount / 12 : amount, currency };
 }

@@ -263,8 +263,11 @@ export const PROBATION_RULES: Record<CountryCode, ProbationRule> = {
   },
 };
 
-export function leaveRuleFor(country: CountryCode, leaveType: LeaveType): LeaveRule | null {
-  return LEAVE_RULES[country][leaveType] ?? null;
+export function leaveRuleFor(
+  country: CountryCode | null,
+  leaveType: LeaveType,
+): LeaveRule | null {
+  return country ? (LEAVE_RULES[country][leaveType] ?? null) : null;
 }
 
 export function leaveTypesFor(country: CountryCode): LeaveType[] {
