@@ -620,11 +620,17 @@
         whatsappNumber: '13023778932',
         // LuaPop validates the domain it is served from against the allow-list
         // in the Lua dashboard, and localhost is not on it — the widget's auth
-        // call comes back 401 and the chat never opens. Declaring the
-        // environment bypasses that check, which is what makes `npx serve
-        // portal` work. Whitelist the real domain under Chat Widget →
-        // Customization before serving this anywhere public.
-        environment: 'production',
+        // call comes back 401 and the chat never opens. Declaring an
+        // environment bypasses that check.
+        //
+        // That bypass is a local development affordance and must not ship: on
+        // any real host this stays undefined, so the allow-list is enforced as
+        // intended and a domain that has not been whitelisted keeps failing,
+        // which is the behaviour you want. Add the real domain under
+        // Chat Widget → Customization.
+        environment: ['localhost', '127.0.0.1', '[::1]', ''].includes(location.hostname)
+          ? 'production'
+          : undefined,
       };
     </script>
 
