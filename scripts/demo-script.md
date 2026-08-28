@@ -67,8 +67,15 @@ That refusal is the point. An HR agent that invents a visa procedure is worse th
 
 *"What would my end of service be if I resign?"*
 
-Walk the breakdown: 8 years, daily wage 400, 75 days for the first five years, 90.16 days after,
-gross 66,065.75 SAR, then two thirds under Article 85 — **44,043.84 SAR**. Show the citation.
+Walk the breakdown by its shape, not by a memorised total: daily wage 400 (12,000 ÷ 30), 15 days of
+wage per year for the first five years, 30 days a year after that, then **two thirds** under Article
+85 because this is a resignation between five and ten years. Show the citation.
+
+**Read the total off the screen.** Ahmad's hire date is fixed at 2018-03-01 while the demo runs
+against today, so his service — and the figure — grows every time you rehearse. It was 44,043.84 SAR
+at exactly eight years; on 2026-08-29 it is **47,989.04 SAR** on a gross of 71,983.56. The unit tests
+pin the eight-year figure with fixed dates, which is why the two differ. Quoting a stale number over
+a live screen is the one way to make a correct calculator look broken.
 
 Then the finding worth showing: ask the same for an Egyptian or Jordanian colleague. It returns **no
 figure**, and explains that end of service there runs through social insurance. That was a real

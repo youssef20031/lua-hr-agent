@@ -301,13 +301,13 @@ export function calculateGratuity(
       en:
         multiplier === 1
           ? `Total payable: ${fmt(amount)} ${currency}`
-          : `${fmt(gross)} x ${multiplier.toFixed(3)} = ${fmt(amount)} ${currency}`,
+          : `${fmt(gross)} x ${formatMultiplier(multiplier)} = ${fmt(amount)} ${currency}`,
       // An all-numeric Arabic line reads as untranslated. Every step must carry
       // real Arabic, including the one the employee actually looks at.
       ar:
         multiplier === 1
           ? `الإجمالي المستحق: ${fmt(amount)} ${currencyAr(currency)}`
-          : `${fmt(gross)} × ${multiplier.toFixed(3)} = ${fmt(amount)} ${currencyAr(currency)}`,
+          : `${fmt(gross)} × ${formatMultiplier(multiplier)} = ${fmt(amount)} ${currencyAr(currency)}`,
     },
     value: amount,
   });
@@ -360,6 +360,21 @@ function currencyAr(currency: string): string {
     JOD: 'دينار',
   };
   return names[currency] ?? currency;
+}
+
+/**
+ * The multiplier as it appears in the arithmetic line.
+ *
+ * Rounded to three decimals it does not reproduce the total — 0.667 of the
+ * gross is out by tens of riyals — and this line exists precisely so that an
+ * employee or an HR officer can redo the sum by hand and get the same answer.
+ * The statutory tiers are exact fractions, so print them as fractions.
+ */
+function formatMultiplier(m: number): string {
+  if (Math.abs(m - 1 / 3) < 1e-9) return '1/3';
+  if (Math.abs(m - 2 / 3) < 1e-9) return '2/3';
+  if (Math.abs(m - 0.5) < 1e-9) return '1/2';
+  return String(Number(m.toFixed(6)));
 }
 
 function formatFraction(m: number): string {

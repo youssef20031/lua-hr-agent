@@ -116,6 +116,25 @@ describe('calculateGratuity — KSA, hand-worked', () => {
     expect(r.amount).toBeCloseTo(44_043.84, 2);
   });
 
+  // The breakdown exists so an employee or an HR officer can re-do the sum by
+  // hand. A multiplier printed as a rounded decimal breaks that: 0.667 applied
+  // to the printed gross does not give the printed total.
+  it('prints a multiplier that reproduces the printed total by hand', () => {
+    const r = calculateGratuity({ ...base, separationReason: 'resignation' }, KSA);
+    const detail = r.breakdown.at(-1)!.detail.en;
+    const m = /([\d,]+\.\d{2})\s*x\s*(\S+)\s*=\s*([\d,]+\.\d{2})/.exec(detail);
+    expect(m, `could not parse the total line: ${detail}`).not.toBeNull();
+    const num = (v: string): number => Number(v.replace(/,/g, ''));
+    const shown = m![2]!;
+    const multiplier = shown.includes('/')
+      ? Number(shown.split('/')[0]) / Number(shown.split('/')[1])
+      : Number(shown);
+    // Within a cent: the printed total is rounded to the cent, so re-doing the
+    // sum from the printed figures lands a fraction of a cent away. The bug this
+    // guards against printed 0.667 and was out by 22 riyals.
+    expect(Math.abs(num(m![1]!) * multiplier - num(m![3]!))).toBeLessThan(0.01);
+  });
+
   it('pays the full award on contract expiry, not the resignation fraction', () => {
     const r = calculateGratuity({ ...base, separationReason: 'end_of_contract' }, KSA);
     expect(r.amount).toBeCloseTo(66_065.75, 2);
