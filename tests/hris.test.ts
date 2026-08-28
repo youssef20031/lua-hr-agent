@@ -27,13 +27,23 @@ describe('employee lookup', () => {
     expect(await hris.getEmployee('E-9999')).toBeNull();
   });
 
+  // These read the seeded contact details rather than hard-coding them: the
+  // demo protagonist's email and phone are a live identity that changes when
+  // somebody records a walkthrough, and a test that breaks on that is testing
+  // the fixture data instead of the lookup behaviour.
   it('finds by work email, case-insensitively', async () => {
-    const e = await hris.findEmployee({ email: 'AHMAD.ALOTAIBI@example.com' });
+    const seeded = (await hris.getEmployee('E-1001'))!;
+    const e = await hris.findEmployee({ email: seeded.workEmail.toUpperCase() });
     expect(e?.id).toBe('E-1001');
   });
 
   it('finds by phone regardless of spacing or punctuation', async () => {
-    const e = await hris.findEmployee({ phone: '+966 50 123 4001' });
+    const seeded = (await hris.getEmployee('E-1001'))!;
+    const digits = seeded.mobilePhone.replace(/\D/g, '');
+    // Same number, deliberately re-punctuated: "+20 155-2916262".
+    const messy = `+${digits.slice(0, 3)} ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    expect(messy).not.toBe(seeded.mobilePhone);
+    const e = await hris.findEmployee({ phone: messy });
     expect(e?.id).toBe('E-1001');
   });
 

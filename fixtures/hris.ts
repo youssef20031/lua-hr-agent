@@ -28,6 +28,19 @@ export type SeedEmployee = Omit<Employee, 'residencyPermitExpiry'> & {
   permitExpiryOffsetDays?: number;
 };
 
+/**
+ * Contact details for the demo protagonist, E-1001.
+ *
+ * The agent identifies whoever it is talking to by the email or phone the
+ * channel supplies, so a live walkthrough needs the protagonist to be a real,
+ * reachable person. Those are somebody's personal details and they are not
+ * committed: set DEMO_EMPLOYEE_EMAIL and DEMO_EMPLOYEE_PHONE in .env locally,
+ * and through `lua env` on the server. Unset, the seed keeps its placeholder
+ * identity and a fresh clone still runs end to end.
+ */
+const DEMO_EMAIL = process.env.DEMO_EMPLOYEE_EMAIL ?? 'ahmad.alotaibi@example.com';
+const DEMO_PHONE = process.env.DEMO_EMPLOYEE_PHONE ?? '+966501234001';
+
 export const SEED_EMPLOYEES: SeedEmployee[] = [
   {
     id: 'E-1001',
@@ -35,8 +48,10 @@ export const SEED_EMPLOYEES: SeedEmployee[] = [
     lastName: 'Al-Otaibi',
     displayName: 'Ahmad Al-Otaibi',
     displayNameAr: 'أحمد العتيبي',
-    workEmail: 'ahmad.alotaibi@example.com',
-    mobilePhone: '+966501234001',
+    // See DEMO_EMAIL / DEMO_PHONE above. Phone matching normalises to digits,
+    // so WhatsApp resolves with or without the leading '+'.
+    workEmail: DEMO_EMAIL,
+    mobilePhone: DEMO_PHONE,
     hireDate: '2018-03-01', // long service: 30 days annual leave in KSA
     country: 'SA',
     department: 'Operations',

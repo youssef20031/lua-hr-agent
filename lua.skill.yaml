@@ -4,34 +4,34 @@ agent:
 skills:
   - name: leave-management
     skillId: 88566f53-1cd2-44b3-bc81-ff3e274095e9
-    version: 1.0.1
+    version: 1.0.3
   - name: hr-knowledge
     skillId: f6142ce1-8895-4c43-b377-f48c080a66a4
-    version: 1.0.1
+    version: 1.0.3
   - name: hr-calculations
     skillId: facad8a7-12a6-4573-8252-e7c268132817
-    version: 1.0.1
+    version: 1.0.3
   - name: hr-ops-dashboard
     skillId: 35e503b6-4e6a-44fe-b694-b03d054c9e59
-    version: 1.0.1
+    version: 1.0.3
 webhooks: []
 jobs:
   - jobId: d92b8999-4dba-41fc-b6c8-7c3e7029ad7d
     name: iqama-expiry-sweep
-    version: 1.0.1
+    version: 1.0.3
   - jobId: b164a4aa-b47f-414c-8d42-fbaf556c8f5c
     name: leave-audit-sync
-    version: 1.0.1
+    version: 1.0.3
 preprocessors:
   - name: language-detect
     preprocessorId: preprocessor_016f1b53-7564-4360-b4a7-98248a804208
-    version: 1.0.1-sandbox
+    version: 1.0.3
 postprocessors:
   - name: channel-shape
     postprocessorId: postprocessor_d66d416f-46e6-4ff0-91cd-903370acd322
-    version: 1.0.1-sandbox
+    version: 1.0.3
 mcpServers: []
 backup:
-  activeVersion: 1
-  lastHash: 6efdf2d1405c97e6c239890f06d2775d2f5628786a81986c9e525d36dcd03538
-  lastPushedAt: '2026-08-28T20:25:22.320Z'
+  activeVersion: 3
+  lastHash: 98e42f3eef28349bf1941565d319c9383a980e9cbfaecef0bc46753159dfe3b2
+  lastPushedAt: '2026-08-28T21:07:32.789Z'
