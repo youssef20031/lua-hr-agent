@@ -1,0 +1,41 @@
+# Publishes the static HR portal to GitHub Pages.
+#
+# The portal is a single file with no build step, so this just uploads
+# portal/ as the Pages artifact. Serving that directory as the site root
+# keeps the URL clean — https://<user>.github.io/<repo>/ rather than a
+# /portal/ suffix — which matters because the URL has to be whitelisted as an
+# allowed domain for the Lua chat widget.
+name: Deploy portal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue rather than cancel so the last push wins.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: portal
+      - id: deployment
+        uses: actions/deploy-pages@v4
