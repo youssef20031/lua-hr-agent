@@ -49,36 +49,48 @@ for the four alert thresholds and send those instead.
 2. Serve it. `.github/workflows/pages.yml` publishes `portal/` to GitHub Pages on every push that
    touches it, which is the easiest way to get a real HTTPS origin; `npx serve portal` works locally.
 
-### The embedded widget does not currently connect — checked 29 August 2026
+### The widget needs its domain whitelisted
 
-The LuaPop bubble needs a webchat configuration registered against the agent, and there is no way to
-create one. **Connect a channel** offers Facebook, WhatsApp, Instagram, Slack, Email, MessageBird,
-Front, Phone, Meetings, Microsoft Teams and iMessage — searching it for `web`, `site` and `widget`
-returns nothing. There is no "Chat Widget" section anywhere in the dashboard; an earlier version of
-this runbook said to whitelist the domain under **Chat Widget → Customization**, and that section no
-longer exists.
+Per Lua's own widget guide: **"You must whitelist your domain before the widget will load"** — added
+under **Chat Widget → Customization** in the admin dashboard. That section is not part of
+**Connect a channel**, which lists only messaging integrations (Facebook, WhatsApp, Instagram,
+Slack, Email, MessageBird, Front, Phone, Meetings, Teams, iMessage) and has no web option; searching
+it for `web`, `site` or `widget` returns nothing. Look under the agent's own settings instead.
 
-What `GET /webchat/config` returns tells you where the boundary is:
+For localhost, passing `environment: "production"` bypasses the domain check. The page does that,
+but only when `location.hostname` is a loopback address, so a real host still enforces the
+allow-list rather than silently skipping it.
+
+Until the domain is registered, `GET /webchat/config` tells you which half is wrong:
 
 | `website=` | Response | Meaning |
 | --- | --- | --- |
-| `localhost` | `400` | Rejected as an invalid website value, whatever else is configured |
-| `youssef20031.github.io` | `404` | Valid domain, but no webchat config exists for this agent |
+| `localhost` | `400` | Rejected as an invalid website value |
+| a real origin | `404` | Valid domain, no webchat config registered for this agent |
 
-Either way `POST /chat/welcome/{agentId}` then returns `401`, because there is nothing to authorise
-against. The `environment: "production"` flag that this runbook used to recommend as a localhost
-bypass changes neither response — the request still carries `website=localhost` and still fails. The
-page keeps that flag scoped to localhost only, so a real host enforces whatever allow-list exists
-rather than silently skipping it.
+`POST /chat/welcome/{agentId}` then returns `401`, because there is nothing to authorise against.
 
-The portal handles this: the widget failure is caught and the page falls back to
-"Chat could not open. Use WhatsApp instead.", which is a working channel rather than a dead end.
-Office staff on the portal reach the same agent through the WhatsApp door until the widget can be
-configured.
+### The widget cannot say who the visitor is
 
-The page keeps both languages on screen at once and the toggle changes reading direction rather than
-hiding a language, which is how bilingual signage on a Saudi industrial site actually works. Language
-choice persists in `localStorage` and falls back to the browser's own preference.
+This one does not have a workaround. LuaPop's documented options are `agentId`, `environment`,
+`position`, `buttonText`, `chatTitle`, `buttonColor`, `buttonIcon`, `welcomeMessage`,
+`chatInputPlaceholder`, `displayMode`, `embeddedDisplayConfig`, `targetContainerId` and
+`popupButtonStyles`. **None of them carries a user identity** — no user, email, phone, external id or
+token.
+
+So `User.get()` yields no email or phone on the web, `currentEmployee()` resolves to nobody, and
+every identity-bound request — balance, submitting leave, gratuity from record — correctly answers
+"I could not match you to an employee record". WhatsApp does not have this problem: the sender's
+phone number identifies them, which is why the field-worker channel is the one that demonstrates
+personal data.
+
+An employee telling the agent "I am Ahmed" does not and should not change this. Identity comes from
+the channel, not from a claim inside the conversation, or anyone could read anyone's balance by
+asserting a name.
+
+Until Lua exposes an identified-session option, the portal is for what does not need identity —
+SOPs, policies, entitlement rules by country — and WhatsApp is for anything personal. That split
+happens to match the two audiences in the brief.
 
 ### Subresource integrity
 
