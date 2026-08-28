@@ -157,8 +157,10 @@ ready:
 - **Google Sheets** — `docs/RUNBOOK-sheets.md`
 - **WhatsApp and the portal** — `docs/RUNBOOK-channels.md`
 
-One scheduling note: create the BambooHR trial **last**, immediately before you need it. The
-adapter pattern means nothing is blocked on it, and spending trial days during development is waste.
+One scheduling note: leave the BambooHR tenant **last**. There is no self-serve trial any more —
+`bamboohr.com/signup/` books a sales demo rather than provisioning an account — so getting one is a
+conversation, not a signup form. The adapter pattern means nothing is blocked on it either way;
+`docs/RUNBOOK-bamboohr.md` has the current routes and the licensing question that goes with them.
 
 ---
 

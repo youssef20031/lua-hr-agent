@@ -33,19 +33,54 @@ Confirm the alias with `GET /meta/fields`.
 
 ## Trial accounts — read this before choosing a dev target
 
-- The free trial's length is not stated on any official page, and whether a trial can generate an API
-  key is **not documented either way**. One unverified community report says it cannot. Settle it by
-  starting a trial and checking whether the "API Keys" menu entry appears.
-- BambooHR does offer **Test Accounts** under the Developer Terms of Service (§1.5), limited to two
-  per developer. But that clause also says: *"Developer must use Test Accounts manually. Developers
-  may not automate use of the Test Accounts."* This project is an automated agent. **Get written
-  clarification from BambooHR before pointing it at a Test Account.** That is a licensing question,
-  not a technical one.
-- `partners.bamboohr.com/test-account` is dead; it redirects to the partner programme overview. The
-  Marketplace sandbox is gated on 100+ customers and a SOC 2 / ISO 27001 audit.
+**Re-checked 28 August 2026.** How you get a tenant at all changed recently, and every third-party
+guide on the subject is stale. Quotes below were read on that date from the linked pages.
+
+- **There is no self-serve trial.** `bamboohr.com/signup/` renders a lead-capture form — *"See
+  BambooHR in Action"* — asking for work email, job title, company name, phone number and employee
+  count, behind a **Get Free Demo** button. It books a sales call. The "no credit card required,
+  trial ends automatically" copy elsewhere on that page does not describe this form, and the
+  "7-day free trial" figure the review sites repeat appears on no BambooHR page; those sources also
+  contradict each other on whether a self-serve trial exists at all. Assume a rep, not a tenant.
+- **A demo is not an API key.** Even a successful submission books a call. Nothing on that path
+  provisions the tenant and key this adapter needs, so it is not a route to a working
+  `HRIS_MODE=live`.
+- **Whether a trial tenant can generate an API key is still undocumented.** The
+  [API docs](https://documentation.bamboohr.com/docs/getting-started) tie key generation to *user
+  permissions*, not to account type, and no BambooHR page states an account-type restriction.
+  Third-party aggregators assert one. Unresolved either way.
+- **Test Accounts are the real developer route.** The API docs say plainly: *"Create a test BambooHR
+  account to develop against"* — but give no link, and the request form is gone (below). The
+  [Developer Terms of Service](https://www.bamboohr.com/legal/developer-terms-of-service) caps them
+  at *"no more than two (2) BambooHR Test Accounts at any time"*, free, and restricts automation:
+
+  > Developers may not automate use of the Test Accounts, use scripts or bots to generate accounts,
+  > users, or data for the purpose of load testing, stress testing, or circumventing usage limits.
+
+  Read the trailing purpose clause carefully. It may qualify the whole list, which would leave an
+  agent that reads a directory and files one leave request outside the prohibition — but the terms
+  separately require using Test Accounts manually. **This is genuinely ambiguous, and it is a
+  licensing question rather than a technical one. Get it in writing before pointing the agent at a
+  Test Account.**
+- **The whole `partners.bamboohr.com` host is retired**, not just one path. `/developer-sandbox/`
+  and `/bamboohr-api-terms-of-use/` both `301` to `bamboohr.com/partner-programs/overview` and
+  `bamboohr.com/legal/developer-terms-of-service` respectively. Search engines still index the old
+  sandbox URL; it does not resolve. The partner overview page no longer publishes eligibility
+  criteria at all — the "100+ customers and a SOC 2 / ISO 27001 audit" gate recorded here previously
+  is no longer stated anywhere public.
+
+One email is worth more than the demo form, because it settles both open questions at once:
+
+> I'm evaluating the BambooHR API for an HR assistant integration and would like a developer Test
+> Account. The request form at `partners.bamboohr.com/developer-sandbox/` no longer resolves.
+> Separately: Developer ToS §1.5 says Test Accounts must be used manually and may not be automated
+> "for the purpose of load testing, stress testing, or circumventing usage limits." Does an
+> integration that reads the employee directory and files time-off requests at normal interactive
+> volume fall inside that restriction?
 
 Because of all of this, the adapter defaults to fixtures and nothing in the build depends on a live
-tenant.
+tenant. That is the design working as intended rather than a workaround: `HRIS_MODE=fixture` is a
+working implementation, and going live is one environment variable once a tenant exists.
 
 ## Behaviour worth knowing
 
