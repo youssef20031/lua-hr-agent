@@ -25,11 +25,11 @@ jobs:
 preprocessors:
   - name: language-detect
     preprocessorId: preprocessor_016f1b53-7564-4360-b4a7-98248a804208
-    version: 1.0.1
+    version: 1.0.1-sandbox
 postprocessors:
   - name: channel-shape
     postprocessorId: postprocessor_d66d416f-46e6-4ff0-91cd-903370acd322
-    version: 1.0.1
+    version: 1.0.1-sandbox
 mcpServers: []
 backup:
   activeVersion: 1
