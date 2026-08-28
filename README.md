@@ -50,6 +50,12 @@ Google Sheets, and proactively messages employees at 90, 60, 30 and 7 days.
 **Two channels.** A web portal for office staff and WhatsApp for field workers — with genuinely
 different behaviour, not the same output twice.
 
+**Account linking.** WhatsApp identifies the sender by phone number; the web widget passes no
+identity at all, so a portal visitor is anonymous and anything personal is refused. Rather than
+accept a name typed into the chat, the agent sends a one-time code to the phone or email already on
+that employee's record. You prove you control a channel the employer already knows, and only then
+does the portal know you.
+
 ---
 
 ## How it is put together
@@ -181,13 +187,12 @@ Stated plainly, because they are design decisions rather than oversights.
   rather than reading back every row, so a re-run inside the same window can duplicate an audit
   entry. A duplicate audit row is a smaller problem than a missing one, which is why it errs that
   way, but it should read the tab directly.
-- **The web portal cannot identify the visitor.** LuaPop's documented `init` options carry no user,
-  email, phone or token, so a web visitor is anonymous: `currentEmployee()` resolves to nobody and
-  anything personal correctly answers "I could not match you to an employee record". Claiming a name
-  in the conversation does not change it, and should not — identity comes from the channel, not from
-  an assertion. WhatsApp identifies by sender number, so the portal covers SOPs and policy while
-  WhatsApp covers personal data. The widget also needs its domain whitelisted before it will load at
-  all; `docs/RUNBOOK-channels.md` has both.
+- **The web portal has no single sign-on.** LuaPop's documented `init` options carry no user, email
+  or token, so the widget cannot tell the agent who is browsing. Account linking works around that
+  with a one-time code to the contact details already on the record, which is a real possession
+  check rather than a name typed into a chat box — but it is a workaround. A portal that
+  authenticated the employee and handed the widget a signed identity would be better, and needs
+  something Lua does not currently expose.
 - **`listEmployeesWithPermits` re-reads every employee** because the BambooHR directory does not
   carry custom fields. Fine at fixture scale and for a demo; a real 50,000-employee tenant needs a
   custom report instead.

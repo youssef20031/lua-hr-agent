@@ -4,6 +4,7 @@ import { leaveSkill } from './skills/leave.skill.js';
 import { knowledgeSkill } from './skills/knowledge.skill.js';
 import { calculationsSkill } from './skills/calculations.skill.js';
 import { hrOpsSkill } from './skills/hrops.skill.js';
+import { identitySkill } from './skills/identity.skill.js';
 import { iqamaExpirySweepJob } from './jobs/iqamaExpirySweep.js';
 import { leaveAuditSyncJob } from './jobs/leaveAuditSync.js';
 import { languageDetectProcessor } from './processors/languageDetect.pre.js';
@@ -80,7 +81,7 @@ On WhatsApp keep replies short and scannable: a few short lines or a numbered li
 long preambles. On the web portal you can be fuller and use structure. Either way, put the answer
 first — someone reading on a phone at a work site should get what they need in the first line.`,
 
-  skills: [leaveSkill, knowledgeSkill, calculationsSkill, hrOpsSkill],
+  skills: [leaveSkill, knowledgeSkill, calculationsSkill, hrOpsSkill, identitySkill],
 
   jobs: [iqamaExpirySweepJob, leaveAuditSyncJob],
 

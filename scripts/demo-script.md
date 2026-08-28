@@ -57,8 +57,17 @@ user identity, so a web visitor is anonymous. Then type *"I am Ahmad"* — it st
 comes from the channel, never from a claim inside the conversation, or anyone could read anyone
 else's balance by asserting a name.
 
-That is what sends personal requests to WhatsApp, where the sender's number identifies them. The
-split matches the two audiences in the brief rather than working around them.
+Then link, on camera. Give it your employee id — **E-1001**. A six-digit code arrives on WhatsApp,
+because that is the number on Ahmad's record and nowhere else. Read it back to the widget and ask
+the balance question again: now it answers.
+
+That is the beat worth slowing down for. The code went to the channel the employer already had, so
+completing the link proves possession rather than assertion — a colleague who knows your employee id
+still cannot do it. It is also the two channels cooperating: the web asks, WhatsApp verifies.
+
+Say what you would do instead in production: the portal would authenticate the employee itself and
+hand the widget a signed identity. Lua does not expose that today, so this is the honest
+alternative rather than the ideal one.
 
 ## 4:15–6:45 — Leave and Arabic on WhatsApp, and a real gap
 

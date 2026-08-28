@@ -14,6 +14,9 @@ skills:
   - name: hr-ops-dashboard
     skillId: 35e503b6-4e6a-44fe-b694-b03d054c9e59
     version: 1.0.4
+  - name: account-linking
+    skillId: ac083de0-a0c5-4e25-89dd-1aeb68f149fa
+    version: 1.0.1
 webhooks: []
 jobs:
   - jobId: d92b8999-4dba-41fc-b6c8-7c3e7029ad7d
@@ -32,6 +35,6 @@ postprocessors:
     version: 1.0.4
 mcpServers: []
 backup:
-  activeVersion: 4
-  lastHash: c24245ef8efa148212cec0b4107b38174a2b565daef1411847cfa3f7273fc132
-  lastPushedAt: '2026-08-28T21:22:57.616Z'
+  activeVersion: 5
+  lastHash: 8e4f4300b09dc5b40e55d87bb23bb3adb9b2f8a5e392db49c3fefdb905cbc23a
+  lastPushedAt: '2026-08-28T22:10:24.875Z'
