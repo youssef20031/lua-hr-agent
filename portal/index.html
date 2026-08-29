@@ -796,19 +796,108 @@
           return 'https://wa.me/' + cfg.whatsappNumber + '?text=' + encodeURIComponent(text);
         }
 
-        function openChat(prefill) {
-          if (window.LuaPop && typeof window.LuaPop.open === 'function') {
-            window.LuaPop.open(prefill ? { message: prefill } : undefined);
-            return;
-          }
-          // Widget unavailable (blocked, offline, or agent id not yet set):
-          // say so plainly and offer the route that does work.
+        /* ------------------------------------------------------------------
+           Opening the widget from the page.
+
+           There is no programmatic open. `window.LuaPop` exposes exactly
+           three members — `config`, `init` and `destroy` — and the panel's
+           open/closed state is React state inside the widget, seeded only
+           from `displayMode === "embedded"`. So a floating widget can be
+           opened one way and one way only: by clicking its own launcher.
+
+           This page used to guard on `typeof LuaPop.open === 'function'`,
+           which is never true, so every card fell through to the "could not
+           open" branch and the chat could not be opened from the page at all.
+
+           Both hooks below are the widget's own stable ones — the launcher
+           carries `.lua-pop-button` and `aria-label="Open support chat"`, the
+           composer has `id="lua-pop-chat-input"` — but they are still a
+           third-party bundle updated in place, so every step checks rather
+           than assumes, and a miss lands on the WhatsApp fallback instead of
+           failing silently.
+           ------------------------------------------------------------------ */
+        function popShadowRoot() {
+          var host = document.getElementById('lua-shadow-root');
+          return host ? host.shadowRoot : null;
+        }
+
+        function popLauncher() {
+          var sr = popShadowRoot();
+          if (!sr) return null;
+          return (
+            sr.querySelector('.lua-pop-button') ||
+            sr.querySelector('[aria-label="Open support chat"]')
+          );
+        }
+
+        /* Present only once the panel is actually open, which makes it the
+           test for "did the click work", not just "was there a button". */
+        function popComposer() {
+          var sr = popShadowRoot();
+          return sr ? sr.querySelector('#lua-pop-chat-input') : null;
+        }
+
+        function prefillComposer(text) {
+          var box = popComposer();
+          if (!box) return false;
+          // React keeps its own copy of the value on the node, so a plain
+          // `box.value = text` is reverted on the next render. Going through
+          // the prototype's setter is what makes React notice a real change.
+          var desc = Object.getOwnPropertyDescriptor(
+            Object.getPrototypeOf(box),
+            'value',
+          );
+          if (desc && desc.set) desc.set.call(box, text);
+          else box.value = text;
+          box.dispatchEvent(new Event('input', { bubbles: true }));
+          box.focus();
+          return true;
+        }
+
+        function chatFallback() {
           var note = document.getElementById('build-note');
           note.textContent =
             current === 'ar'
               ? 'تعذر فتح المحادثة. استخدم واتساب أدناه.'
               : 'Chat could not open. Use WhatsApp instead.';
           note.style.color = 'var(--oxide)';
+        }
+
+        /* The panel animates in, and on a cold open it has to authenticate
+           first, so neither the composer nor the click's effect is there on
+           the next tick. Poll briefly rather than guess at a delay. */
+        function whenComposerReady(onReady, onGiveUp) {
+          var deadline = Date.now() + 5000;
+          (function attempt() {
+            if (popComposer()) return onReady();
+            if (Date.now() > deadline) return onGiveUp();
+            setTimeout(attempt, 100);
+          })();
+        }
+
+        function openChat(prefill) {
+          var launcher = popLauncher();
+          if (!launcher) {
+            // Widget never mounted: blocked, offline, or the agent id is unset.
+            chatFallback();
+            return;
+          }
+
+          // The launcher toggles, so clicking it while the panel is already
+          // open would shut it — which is exactly what a second example card
+          // would do.
+          if (!popComposer()) launcher.click();
+
+          whenComposerReady(
+            function () {
+              if (prefill) prefillComposer(prefill);
+            },
+            // Mounted but never opened. The usual cause is that this domain is
+            // not whitelisted under Chat Widget → Customization, so the widget
+            // cannot authenticate: /webchat/config answers 404 and the welcome
+            // sync 401. Nothing the page can do about it, so say so.
+            chatFallback,
+          );
         }
 
         function init() {
