@@ -100,18 +100,29 @@ happens to match the two audiences in the brief.
 
 ### Conversations are scoped to the tab, deliberately
 
-Pass no `sessionId` and LuaPop generates a UUID once, stores it in `localStorage` under
-`lua_pop_session_id`, and reuses it forever — its own JSDoc calls it "the session ID for resuming a
-previous session". That key is scoped to the origin and never expires, so the widget has no notion
-of a new conversation: a visit next week, a colleague at the same desk, or a demo laptop all reopen
-the previous chat with its full transcript. Reported as "chats from other sessions showing up", and
-that is exactly what it is — the same session id being handed back.
+**The transcript is chosen by `localStorage.authToken`, and by nothing else.** The widget mints an
+anonymous Firebase user the first time a chat is opened, stores that JWT, and fetches history with
+`GET /chat/history/{agentId}` carrying it as the bearer — no session id, no thread id, no date
+bound. Origin-scoped storage with no expiry means the token, and the conversation behind it, comes
+back next week and for whoever next opens that browser profile. That is the whole of the "chats
+from other sessions showing up" and "I have seen this chat yesterday" report.
 
-`portal/index.html` therefore mints its own id in `sessionStorage` (`rafiq.session`) and passes it
-in. That survives reloads, so nobody loses a conversation mid-sentence, and dies with the tab, so
-the next visitor starts clean. When storage is blocked entirely — private browsing with site data
-off — it passes nothing and LuaPop's own behaviour applies, which is better than pinning every
-visitor in that state to one shared id.
+`sessionId` looks like the answer and is not. It is a real option, and its own JSDoc calls it "the
+session ID for resuming a previous session", but `chatApi.fetchChatHistory` and `chatApi.streamChat`
+never send it — it stays client-side. Passing it changes nothing a visitor can observe. Verified by
+reading the bundle, then confirmed live: clearing `authToken` and reloading produced a different
+Firebase `uid` and an empty transcript.
+
+So `portal/index.html` marks the tab with `sessionStorage['rafiq.session']`, and treats the absence
+of that marker as "new tab": it removes `authToken` and `lua_pop_session_id` before calling
+`LuaPop.init`, which is the last moment before the widget would pick the old identity back up.
+Reloads and in-tab navigation keep the marker and the conversation; closing the tab ends both. It
+still passes `sessionId`, because it costs nothing and it is the documented way to name a
+conversation — but the clearing is what does the work.
+
+A returning visitor loses their history, deliberately. This portal is opened from shared desks and
+demo laptops, the widget cannot say who anyone is, and a transcript is not worth handing to the next
+person who sits down.
 
 The security half of this lives in the agent, not the page, because a page cannot be trusted to
 enforce it: a completed link is stamped with `linkedAt` and `currentEmployee()` ignores a pin older

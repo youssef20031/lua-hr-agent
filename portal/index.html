@@ -753,25 +753,49 @@
         }
 
         /* ------------------------------------------------------------------
-           Conversation scoping.
+           Conversation scoping — one visit is one tab.
 
-           Left to itself LuaPop mints a UUID once and keeps it in
-           localStorage under `lua_pop_session_id` with no expiry, then
-           resumes that conversation on every later visit — its own option is
-           documented as "the session ID for resuming a previous session".
-           Origin-scoped and permanent means "this browser", not "this
-           person": a second visit, a colleague at the same desk or a demo
-           laptop all reopen the previous chat, transcript and all.
+           The transcript that comes back is chosen by `localStorage.authToken`,
+           and by nothing else. The widget mints an anonymous Firebase user the
+           first time a chat is opened, stores that JWT, and asks the server for
+           history with `GET /chat/history/{agentId}` carrying it as the bearer
+           — no session id, no thread id, no date bound. Origin-scoped storage
+           with no expiry means that token, and the conversation behind it,
+           comes back next week and for whoever next opens this browser
+           profile. That is the whole of the "I have seen this chat before"
+           bug: yesterday's messages, restored by yesterday's token.
 
-           sessionStorage is the right granularity instead. It survives
-           reloads and in-tab navigation, so nobody loses a conversation
-           half-way through, and it dies with the tab, so the next visitor
-           starts clean.
+           `sessionId` is NOT the fix, despite reading like it. It is a real
+           option and its own docs call it "the session ID for resuming a
+           previous session", but the request builder never sends it anywhere
+           — it stays client-side. Passing it changes nothing a visitor can
+           observe. We still pass it, because it costs nothing and it is the
+           documented way to say "this conversation", but the clearing below
+           is what actually gives a new tab a clean slate.
 
-           This is scoping, not identity. The value is client-side and any
-           visitor can set it to anything, so the agent must keep proving who
-           someone is with the one-time code — see docs/RUNBOOK-channels.md.
+           So: sessionStorage marks the tab, and its absence is the signal to
+           drop the stored identity before the widget can reuse it. Reloads
+           and in-tab navigation keep the marker and the conversation; closing
+           the tab ends both.
+
+           A returning visitor therefore loses their history, deliberately.
+           This portal is opened from shared desks and demo laptops, the
+           widget cannot say who anyone is, and a transcript is not worth
+           handing to the next person who sits down.
            ------------------------------------------------------------------ */
+
+        /* Must run before LuaPop.init, which is where the widget would
+           otherwise pick the stored token back up. */
+        function startFreshVisitIfNewTab() {
+          try {
+            // Same tab: the marker is already there, so keep the conversation.
+            if (sessionStorage.getItem('rafiq.session')) return;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('lua_pop_session_id');
+          } catch (e) {
+            /* Storage blocked: nothing was persisted, so nothing to clear. */
+          }
+        }
         function tabSessionId() {
           var KEY = 'rafiq.session';
           try {
@@ -901,6 +925,7 @@
         }
 
         function init() {
+          startFreshVisitIfNewTab();
           renderAsks();
 
           var stored = null;
