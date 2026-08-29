@@ -18,6 +18,8 @@ import {
   MAX_LINK_ATTEMPTS,
   MAX_LINK_REQUESTS,
   LINK_REQUEST_WINDOW_MINUTES,
+  LINK_SESSION_TTL_HOURS,
+  linkHasExpired,
   type PendingLink,
   type RequestBudget,
 } from '../src/domain/accountLink.js';
@@ -160,5 +162,43 @@ describe('allowLinkRequest', () => {
     const r = allowLinkRequest(spent, later);
     expect(r.allowed).toBe(true);
     expect(r.next).toEqual({ count: 1, windowStartedAt: later });
+  });
+});
+
+/**
+ * A completed link has to expire.
+ *
+ * The web widget resumes a conversation from a session id it keeps in
+ * localStorage indefinitely, so "this browser" and "this person" are not the
+ * same thing: a demo laptop, a shared desk or a kiosk hands the next visitor
+ * whatever the last one linked to. Without a lifetime the pin outlives the
+ * person, and a stranger inherits a salary and an end-of-service figure.
+ */
+describe('linkHasExpired', () => {
+  const hoursFrom = (iso: string, h: number): string =>
+    new Date(new Date(iso).getTime() + h * 3_600_000).toISOString();
+
+  it('keeps a link made moments ago', () => {
+    expect(linkHasExpired(NOW, NOW)).toBe(false);
+  });
+
+  it('keeps a link right up to the boundary', () => {
+    expect(linkHasExpired(NOW, hoursFrom(NOW, LINK_SESSION_TTL_HOURS))).toBe(false);
+  });
+
+  it('drops a link once the lifetime is past', () => {
+    expect(linkHasExpired(NOW, hoursFrom(NOW, LINK_SESSION_TTL_HOURS + 1))).toBe(true);
+  });
+
+  // Records pinned before this rule existed carry no timestamp. Treating that
+  // as live would exempt exactly the links that have been sitting around
+  // longest, so the unknown case fails closed.
+  it('treats a link with no timestamp as expired', () => {
+    expect(linkHasExpired(undefined, NOW)).toBe(true);
+    expect(linkHasExpired('', NOW)).toBe(true);
+  });
+
+  it('treats an unparseable timestamp as expired rather than as the epoch', () => {
+    expect(linkHasExpired('not-a-date', NOW)).toBe(true);
   });
 });

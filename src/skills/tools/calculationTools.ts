@@ -19,6 +19,7 @@ import { COUNTRIES, parseCountry, type CountryCode, type Language } from '../../
 import { getHris } from '../../services/bamboohr/index.js';
 import { pick, t } from '../../services/i18n.js';
 import type { Employee } from '../../services/bamboohr/types.js';
+import { linkHasExpired } from '../../domain/accountLink.js';
 
 /**
  * Resolves the employee behind the current conversation.
@@ -36,10 +37,16 @@ export async function currentEmployee(): Promise<Employee | null> {
   const phone = profile?.mobileNumbers?.[0] ?? (user.phone as string | undefined);
   const name = profile?.fullName ?? (user.name as string | undefined);
 
-  // An employee id pinned onto the user record wins over any lookup.
+  // An employee id pinned onto the user record wins over any lookup — but only
+  // while it is still fresh. The pin is set by account linking, which exists
+  // for the web widget, and LuaPop resumes a conversation from a session id it
+  // keeps in localStorage forever. Without a lifetime the pin outlives the
+  // person: the next visitor on that browser profile inherits the last one's
+  // identity. An expired pin is ignored rather than rejected, so a channel that
+  // identifies its own sender falls through to the lookup below untouched.
   const pinned = user.employeeId as string | undefined;
   const hris = getHris();
-  if (pinned) {
+  if (pinned && !linkHasExpired(user.linkedAt as string | undefined, new Date().toISOString())) {
     const byId = await hris.getEmployee(pinned);
     if (byId) return byId;
   }

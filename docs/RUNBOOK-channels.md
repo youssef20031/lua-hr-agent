@@ -74,9 +74,15 @@ Until the domain is registered, `GET /webchat/config` tells you which half is wr
 
 This one does not have a workaround. LuaPop's documented options are `agentId`, `environment`,
 `position`, `buttonText`, `chatTitle`, `buttonColor`, `buttonIcon`, `welcomeMessage`,
-`chatInputPlaceholder`, `displayMode`, `embeddedDisplayConfig`, `targetContainerId` and
-`popupButtonStyles`. **None of them carries a user identity** — no user, email, phone, external id or
-token.
+`chatInputPlaceholder`, `displayMode`, `embeddedDisplayConfig`, `targetContainerId`,
+`popupButtonStyles` and `sessionId`. **None of them carries a user identity** — no user, email,
+phone, external id or token.
+
+`sessionId` is the near miss, and it is worth being precise about why it is not the answer. It
+scopes *which conversation* the widget resumes, and the page does set it (below). It is not
+identity: the value is client-side, so a visitor can set it to anything, and trusting it would mean
+anyone could resume anyone's conversation by guessing an id. Identity still has to be proven, which
+is what the one-time code in `account-linking` is for.
 
 So `User.get()` yields no email or phone on the web, `currentEmployee()` resolves to nobody, and
 every identity-bound request — balance, submitting leave, gratuity from record — correctly answers
@@ -91,6 +97,27 @@ asserting a name.
 Until Lua exposes an identified-session option, the portal is for what does not need identity —
 SOPs, policies, entitlement rules by country — and WhatsApp is for anything personal. That split
 happens to match the two audiences in the brief.
+
+### Conversations are scoped to the tab, deliberately
+
+Pass no `sessionId` and LuaPop generates a UUID once, stores it in `localStorage` under
+`lua_pop_session_id`, and reuses it forever — its own JSDoc calls it "the session ID for resuming a
+previous session". That key is scoped to the origin and never expires, so the widget has no notion
+of a new conversation: a visit next week, a colleague at the same desk, or a demo laptop all reopen
+the previous chat with its full transcript. Reported as "chats from other sessions showing up", and
+that is exactly what it is — the same session id being handed back.
+
+`portal/index.html` therefore mints its own id in `sessionStorage` (`rafiq.session`) and passes it
+in. That survives reloads, so nobody loses a conversation mid-sentence, and dies with the tab, so
+the next visitor starts clean. When storage is blocked entirely — private browsing with site data
+off — it passes nothing and LuaPop's own behaviour applies, which is better than pinning every
+visitor in that state to one shared id.
+
+The security half of this lives in the agent, not the page, because a page cannot be trusted to
+enforce it: a completed link is stamped with `linkedAt` and `currentEmployee()` ignores a pin older
+than `LINK_SESSION_TTL_HOURS` (12), and `unlink_account` ends one on request. Expiry only ignores
+the pin — WhatsApp identifies its sender by phone number and falls through to that lookup, so this
+can lock nobody out.
 
 ### Subresource integrity
 

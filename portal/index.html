@@ -752,6 +752,45 @@
           }
         }
 
+        /* ------------------------------------------------------------------
+           Conversation scoping.
+
+           Left to itself LuaPop mints a UUID once and keeps it in
+           localStorage under `lua_pop_session_id` with no expiry, then
+           resumes that conversation on every later visit — its own option is
+           documented as "the session ID for resuming a previous session".
+           Origin-scoped and permanent means "this browser", not "this
+           person": a second visit, a colleague at the same desk or a demo
+           laptop all reopen the previous chat, transcript and all.
+
+           sessionStorage is the right granularity instead. It survives
+           reloads and in-tab navigation, so nobody loses a conversation
+           half-way through, and it dies with the tab, so the next visitor
+           starts clean.
+
+           This is scoping, not identity. The value is client-side and any
+           visitor can set it to anything, so the agent must keep proving who
+           someone is with the one-time code — see docs/RUNBOOK-channels.md.
+           ------------------------------------------------------------------ */
+        function tabSessionId() {
+          var KEY = 'rafiq.session';
+          try {
+            var existing = sessionStorage.getItem(KEY);
+            if (existing) return existing;
+            var fresh =
+              window.crypto && typeof window.crypto.randomUUID === 'function'
+                ? window.crypto.randomUUID()
+                : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+            sessionStorage.setItem(KEY, fresh);
+            return fresh;
+          } catch (e) {
+            // Private browsing with storage blocked. Returning undefined hands
+            // the decision back to LuaPop rather than pinning every visitor in
+            // this state to one shared id, which would be the bug we are fixing.
+            return undefined;
+          }
+        }
+
         function whatsappHref(prefill) {
           var text = prefill || 'link-me-to:' + cfg.agentId;
           return 'https://wa.me/' + cfg.whatsappNumber + '?text=' + encodeURIComponent(text);
@@ -804,6 +843,7 @@
             window.LuaPop.init({
               agentId: cfg.agentId,
               environment: cfg.environment,
+              sessionId: tabSessionId(),
               position: 'bottom-right',
               chatTitle: 'Rafiq — HR Desk',
               buttonColor: '#16211F',
@@ -825,6 +865,7 @@
             window.LuaPop.init({
               agentId: cfg.agentId,
               environment: cfg.environment,
+              sessionId: tabSessionId(),
               position: 'bottom-right',
               chatTitle: 'Rafiq — HR Desk',
               buttonColor: '#16211F',

@@ -24,6 +24,7 @@ import {
   verifyLinkCode,
   LINK_CODE_TTL_MINUTES,
   LINK_REQUEST_WINDOW_MINUTES,
+  LINK_SESSION_TTL_HOURS,
   MAX_LINK_ATTEMPTS,
   type PendingLink,
   type RequestBudget,
@@ -219,6 +220,10 @@ export class ConfirmAccountLinkTool implements LuaTool {
     const destination = String(user.pendingLinkDestination ?? '');
     await user.update({
       employeeId: verdict.employeeId,
+      // Starts the clock on the pin. `currentEmployee()` ignores a link older
+      // than LINK_SESSION_TTL_HOURS, because the web session id this link hangs
+      // off is a localStorage UUID that never expires on its own.
+      linkedAt: new Date().toISOString(),
       pendingLinkEmployeeId: '',
       pendingLinkCodeHash: '',
       pendingLinkDestination: '',
@@ -236,11 +241,81 @@ export class ConfirmAccountLinkTool implements LuaTool {
       codeSentTo: destination ? maskDestination(destination) : undefined,
       message: say(
         language,
-        `Linked. I know you as ${name} now, so I can look up your balance, file leave and calculate your end of service.`,
-        `تم الربط. أعرفك الآن باسم ${name}، ويمكنني الاطلاع على رصيدك وتقديم طلبات الإجازة وحساب مكافأة نهاية الخدمة.`,
+        `Linked. I know you as ${name} now, so I can look up your balance, file leave and calculate your end of service. ` +
+          `This lasts ${LINK_SESSION_TTL_HOURS} hours; on a shared computer, say "forget me" when you are done.`,
+        `تم الربط. أعرفك الآن باسم ${name}، ويمكنني الاطلاع على رصيدك وتقديم طلبات الإجازة وحساب مكافأة نهاية الخدمة. ` +
+          `يستمر هذا ${LINK_SESSION_TTL_HOURS} ساعة؛ وإذا كنت على جهاز مشترك فقل "انسني" عند الانتهاء.`,
       ),
     };
   }
 }
 
-export const identityTools = [new RequestAccountLinkTool(), new ConfirmAccountLinkTool()];
+/**
+ * Ending a link on purpose, before the lifetime runs out.
+ *
+ * The expiry bounds the damage; this is how someone avoids it entirely. A
+ * portal visitor on a shared or borrowed machine has no other way to hand the
+ * browser back safely — closing the tab does not help, because LuaPop restores
+ * the same session id from localStorage on the next visit.
+ *
+ * Deliberately takes no input and asks nothing. Anyone who can reach this
+ * conversation is already inside it, so unlinking gives away nothing they did
+ * not have, and a confirmation step would only encourage saying no.
+ */
+export class UnlinkAccountTool implements LuaTool {
+  name = 'unlink_account';
+  description =
+    'Forget the employee this conversation is linked to, so it goes back to being anonymous. Use ' +
+    'when the person says they are done, is on a shared or public computer, or asks to be ' +
+    'forgotten, signed out or unlinked. Takes no arguments and needs no confirmation.';
+
+  inputSchema = z.object({});
+
+  async execute(): Promise<unknown> {
+    const language = await currentLanguage();
+    const user = await User.get();
+    if (!user) {
+      return {
+        ok: false,
+        message: say(
+          language,
+          'I cannot identify this conversation.',
+          'لا أستطيع تحديد هذه المحادثة.',
+        ),
+      };
+    }
+
+    const wasLinked = Boolean(user.employeeId);
+    // Any half-finished link goes too: leaving a live code behind would let the
+    // next person on this browser finish someone else's verification.
+    await user.update({
+      employeeId: '',
+      linkedAt: '',
+      pendingLinkEmployeeId: '',
+      pendingLinkCodeHash: '',
+      pendingLinkDestination: '',
+      pendingLinkExpiresAt: '',
+      pendingLinkAttempts: 0,
+    });
+
+    return {
+      ok: true,
+      wasLinked,
+      message: say(
+        language,
+        wasLinked
+          ? 'Done — I have forgotten who you are. This conversation is anonymous again, and nothing personal can be looked up until someone links again.'
+          : 'There was nothing to forget: this conversation was not linked to anyone.',
+        wasLinked
+          ? 'تم — نسيتُ من أنت. عادت هذه المحادثة مجهولة الهوية، ولا يمكن الاطلاع على أي بيانات شخصية حتى يتم الربط من جديد.'
+          : 'لا يوجد ما أنساه: لم تكن هذه المحادثة مرتبطة بأحد.',
+      ),
+    };
+  }
+}
+
+export const identityTools = [
+  new RequestAccountLinkTool(),
+  new ConfirmAccountLinkTool(),
+  new UnlinkAccountTool(),
+];

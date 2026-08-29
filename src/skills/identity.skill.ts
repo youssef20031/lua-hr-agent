@@ -10,7 +10,8 @@ import { identityTools } from './tools/identityTools.js';
  * of a channel the HRIS already holds for that employee.
  *
  * The context is written to keep the model from doing the obvious wrong thing —
- * accepting "I am Ahmad" as identification, or offering to link somebody else.
+ * accepting "I am Ahmad" as identification, offering to link somebody else, or
+ * treating a completed link as permanent when the browser it lives in is not.
  */
 export const identitySkill = new LuaSkill({
   name: 'account-linking',
@@ -45,6 +46,14 @@ WHAT NOT TO DO
 - Do not confirm or deny whether an employee id exists. The tool is deliberately vague about that;
   keep it that way rather than helpfully filling in the gap.
 - Do not link somebody who is already identified, and never link one person to another person's id.
+
+ENDING IT
+A link lasts twelve hours and then lapses on its own. Call unlink_account the moment somebody says
+they are finished, is handing the computer back, is on a shared or public machine, or asks to be
+signed out, unlinked or forgotten. Do not ask them to confirm and do not talk them out of it — the
+web portal is reached from shared desks and demo laptops, and the chat window is restored from the
+browser rather than started fresh, so the next person to open it would otherwise arrive already
+holding this person's salary and end-of-service figures.
 
 If they would rather not link, they can still ask anything that is not about them personally: SOPs,
 policies, and the statutory entitlement rules for any of the four countries.`,

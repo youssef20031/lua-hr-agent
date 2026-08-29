@@ -132,3 +132,41 @@ export function maskDestination(value: string): string {
   }
   return `•••• ${value.replace(/\D/g, '').slice(-4)}`;
 }
+
+/**
+ * How long a completed link survives.
+ *
+ * The link is pinned to a conversation, and on the web a conversation is
+ * whatever LuaPop's session id points at — a UUID it mints once and keeps in
+ * localStorage with no expiry, so the same id comes back next week and on
+ * whoever next opens that browser profile. "This browser" is therefore not
+ * "this person", and an unbounded pin quietly grants a stranger someone's
+ * balance, salary and end-of-service figure.
+ *
+ * A working day is the compromise: long enough that nobody re-verifies
+ * mid-conversation, short enough that a link cannot outlive the visit that
+ * created it. Expiry is absolute rather than sliding, because a sliding window
+ * is exactly wrong here — a shared machine in constant use would never lapse.
+ */
+export const LINK_SESSION_TTL_HOURS = 12;
+
+/**
+ * Whether a pinned link is too old to trust.
+ *
+ * Expiry only ever *ignores* the pin; it never refuses the conversation. A
+ * channel that identifies its sender — WhatsApp, by phone number — falls
+ * straight through to that lookup and is unaffected, which is the point: this
+ * can lock nobody out, it only stops an anonymous channel from remembering an
+ * identity longer than the person is plausibly still there.
+ */
+export function linkHasExpired(linkedAt: string | undefined, nowIso: string): boolean {
+  // No timestamp means a link pinned before this rule existed. Those are the
+  // ones that have been sitting around longest, so the unknown case fails
+  // closed rather than exempting precisely the wrong records.
+  if (!linkedAt) return true;
+  const at = new Date(linkedAt).getTime();
+  // An unparseable date is NaN, and every comparison against NaN is false —
+  // read naively that would make a corrupt timestamp permanently valid.
+  if (Number.isNaN(at)) return true;
+  return new Date(nowIso).getTime() - at > LINK_SESSION_TTL_HOURS * 3_600_000;
+}
