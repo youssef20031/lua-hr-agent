@@ -122,9 +122,30 @@ export function formatDays(count: number, language: Language): string {
  * silently English sentence in an Arabic conversation.
  */
 export const STRINGS = {
+  /**
+   * Returned by every identity-bound tool when it cannot place the caller.
+   *
+   * On the web portal that is the ordinary case, not a fault — the widget
+   * passes no identity — so this is the most-seen sentence in the product and
+   * it has to leave somewhere to go. It used to end at "contact HR", which
+   * quietly cancelled the account-linking skill: the model relays what the
+   * tool says, so a visitor asking for their leave balance was sent away from
+   * the very flow built to verify them. Naming the employee id is what makes
+   * it actionable, since that is the first thing request_account_link needs.
+   *
+   * HR stays as a second route rather than the only one, because linking
+   * genuinely cannot help someone whose record holds a phone and email they
+   * no longer control.
+   */
   notIdentified: {
-    en: 'I could not match you to an employee record. Please contact HR so they can link your account.',
-    ar: 'لم أتمكن من مطابقتك بسجل موظف. يُرجى التواصل مع الموارد البشرية لربط حسابك.',
+    en:
+      'I could not match you to an employee record, so I cannot look up anything personal yet. ' +
+      'Tell me your employee id and I will send a one-time code to the phone or email already on ' +
+      'that record, which links you here. HR can also do it for you.',
+    ar:
+      'لم أتمكن من مطابقتك بسجل موظف، لذا لا يمكنني الاطلاع على أي بيانات شخصية بعد. ' +
+      'أخبرني برقم الموظف وسأرسل رمزاً لمرة واحدة إلى الهاتف أو البريد المسجل في ذلك السجل، ' +
+      'وبذلك يتم ربطك هنا. ويمكن للموارد البشرية أيضاً القيام بذلك نيابة عنك.',
   },
   hrOnly: {
     en: 'That information is available to HR staff only.',

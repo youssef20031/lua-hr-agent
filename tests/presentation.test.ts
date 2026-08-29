@@ -112,6 +112,23 @@ describe('bilingual formatting', () => {
   it('resolves canned strings by key', () => {
     expect(t('hrOnly', 'ar')).toBe(STRINGS.hrOnly.ar);
   });
+
+  /**
+   * Every identity-bound tool returns this when it cannot place the caller,
+   * which on the web portal is the normal case rather than an error. It used
+   * to end at "contact HR" — a dead end, because the agent has an
+   * account-linking skill that can verify someone inside the conversation, and
+   * a tool result telling them to go elsewhere is the one thing that reliably
+   * stops it being offered. Seen on the deployed portal: an anonymous visitor
+   * asked for their leave balance and was sent to HR instead of being offered
+   * a code.
+   */
+  it('offers the linking route rather than dead-ending at HR', () => {
+    // The employee id is the flow's first step, so naming it is what turns
+    // this from a refusal into something the person can act on.
+    expect(STRINGS.notIdentified.en).toMatch(/employee id/i);
+    expect(STRINGS.notIdentified.ar).toMatch(/رقم الموظف/);
+  });
 });
 
 describe('toPlainText — reshaping for WhatsApp', () => {
